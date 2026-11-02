@@ -408,7 +408,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v0.5</span>
+      <span class="v">v0.6</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -514,6 +514,11 @@ var activity=[
   {t:"07:15",text:"KI-1041 scheduled — Skeldon Energy"}
 ];
 var seq=1044;
+var applications=[
+  {id:"CR-204",customer:"Port Mourant Rice",date:"Today",status:"review",docs:5},
+  {id:"CR-203",customer:"Corentyne Sawmills",date:"2 days ago",status:"sent",docs:5}
+];
+var appSeq=205;
 var driverMsgs=[
   {who:"them",t:"07:02",text:"Morning Rohan — 3 stops today. A.C.S. (Rose Hall) first, it’s priority."},
   {who:"me",t:"07:05",text:"Copy. Loading diesel now, rolling by 07:30."},
@@ -640,7 +645,7 @@ function renderOwner(){
   var c=ownerCounts();
   var groups=[
     ["Operations",[["overview","Overview","grid",0],["orders","Orders","list",0],["dispatch","Dispatch","truck",c.pending]]],
-    ["Business",[["billing","Billing","cash",c.unpaid],["finance","Finance","coins",0],["customers","Customers","users",0],["reports","Reports","chart",0]]],
+    ["Business",[["billing","Billing","cash",c.unpaid],["finance","Finance","coins",0],["applications","Applications","file",applications.filter(function(a){return a.status!=="approved";}).length],["customers","Customers","users",0],["reports","Reports","chart",0]]],
     ["Inventory",[["stock","Stock & tanks","drop",0]]],
     ["Account",[["settings","Settings","user",0]]]
   ];
@@ -658,6 +663,7 @@ function ownerPanel(){
     case "customers":return panelCustomers();
     case "reports":return panelReports();
     case "finance":return panelFinance();
+    case "applications":return panelApplications();
     case "stock":return panelStock();
     case "settings":return panelSettings();
     default:return panelOverview();
@@ -734,6 +740,7 @@ function tripCard(o){
     '<div class="tc-eta"><div class="v">~'+etaMin+' min</div><div class="l">ETA '+esc(o.eta||"—")+'</div></div></div>'+
     '<div class="tc-bar"><span style="width:'+progress+'%"></span></div>'+
     '<div class="tc-meta">'+ic("drop")+'<span>'+fmt(o.litres)+' L '+PSHORT[o.prod]+' → '+esc(o.customer)+' · '+distKm+' km away</span></div>'+
+    '<div class="tc-meta" style="color:var(--faint)">'+ic("pin")+'<span>Live from driver device · syncs with your Latitude Geospatial truck GPS</span></div>'+
     '<div class="contact"><button class="cbtn" data-act="contact" data-kind="call" data-name="'+esc(d.name)+'">'+ic("phone")+'Call driver</button><button class="cbtn" data-act="open-trip" data-id="'+o.id+'">'+ic("pin")+'Details</button></div>';
 }
 function panelOrders(){
@@ -815,6 +822,20 @@ function panelSettings(){
     '</div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("users")+'Team & access</h3><span class="tag">'+team.length+' users</span></div><div class="bd flush"><div class="tw"><table><thead><tr><th>User</th><th>Role</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>'+
     '<button class="btn ghost" data-act="logout" data-role="owner">Sign out</button>';
+}
+function panelApplications(){
+  var label={review:"Under legal review",sent:"Agreement sent — awaiting e-sign",approved:"Credit line active"};
+  var dataS={review:"pending",sent:"scheduled",approved:"delivered"};
+  var rows=applications.map(function(a){
+    var action = a.status==="review" ? '<button class="btn sm" data-act="app-upload" data-id="'+a.id+'">'+ic("file")+'Upload signed agreement</button>'
+      : a.status==="sent" ? '<button class="btn sm" data-act="app-open" data-id="'+a.id+'">'+ic("check")+'Open credit line</button>'
+      : '<span class="pill-paid">Approved</span>';
+    return '<div class="item"><div class="t"><div><div class="cust">'+esc(a.customer)+'</div><div class="muted sm" style="margin-top:2px"><span class="oid">'+a.id+'</span> · '+esc(a.date)+' · '+a.docs+' documents received</div></div><span class="st" data-s="'+dataS[a.status]+'"><span class="d"></span>'+label[a.status]+'</span></div><div class="row" style="justify-content:flex-end;margin-top:10px">'+action+'</div></div>';
+  }).join("")||'<div class="empty">No applications yet. Customer credit-line applications land here.</div>';
+  var open=applications.filter(function(a){return a.status!=="approved";}).length;
+  return '<div class="panel-h"><h2>Credit applications</h2><span class="meta">legal file · '+open+' open</span></div>'+
+    '<div class="block"><div class="bd flush"><div class="disp">'+rows+'</div></div></div>'+
+    '<div class="callout" style="margin:0"><div class="h">'+ic("file")+'How this works</div><p>New applications route straight to the legal file. Legal reviews the documents and prepares the agreement off-app, then you upload the signed agreement here — the client e-signs in their app, and the credit line opens.</p></div>';
 }
 function panelFinance(){
   var sold=57000, rev=18420000, cogs=14200000, gross=rev-cogs;
@@ -1006,8 +1027,10 @@ function custAccount(){
     '<div class="block"><div class="bh"><h3>'+ic("cash")+'Credit</h3></div><div class="bd">'+
       '<div class="meter"><span style="width:'+used+'%;background:'+(used>80?'var(--crit)':'var(--ink)')+'"></span></div>'+
       '<div class="faint sm mono" style="margin-top:6px">'+gyd(bal)+' of '+gyd(cu.limit||0)+' used · '+used+'%</div></div></div>'+
-    '<div class="block"><div class="bh"><h3>'+ic("file")+'Credit line</h3>'+(cu.creditStatus==="submitted"?'<span class="st" data-s="scheduled"><span class="d"></span>Under review</span>':'')+'</div><div class="bd">'+
-      (cu.creditStatus==="submitted"
+    '<div class="block"><div class="bh"><h3>'+ic("file")+'Credit line</h3>'+(cu.creditStatus==="submitted"?'<span class="st" data-s="scheduled"><span class="d"></span>Under review</span>':cu.creditStatus==="active"?'<span class="st" data-s="delivered"><span class="d"></span>Active</span>':'')+'</div><div class="bd">'+
+      (cu.creditStatus==="active"
+        ? '<p class="muted sm" style="margin:0">Your credit line is open. Orders can be placed on account up to your limit.</p>'
+        : cu.creditStatus==="submitted"
         ? '<p class="muted sm" style="margin:0">Your application and documents are with Kris Industries for verification. You’ll receive a credit agreement to e-sign once approved.</p>'
         : '<p class="muted sm" style="margin:0 0 11px">Apply for a credit line to order on account. Upload a few documents; once verified you’ll e-sign a credit agreement.</p><button class="btn block" data-act="apply-credit">'+ic("plus")+'Apply for a credit line</button>')+
     '</div></div>'+
@@ -1219,7 +1242,9 @@ document.addEventListener("click",function(e){
   else if(act==="export"){toast("Exporting to "+(el.dataset.fmt||"file")+"…");}
   else if(act==="apply-credit")openCreditApply();
   else if(act==="upload-doc"){creditUploaded[el.dataset.i]=true;openCreditApply();}
-  else if(act==="submit-credit"){closeSheet();var cu=CUSTOMERS.find(function(x){return x.name===CUSTOMER_ME;});if(cu)cu.creditStatus="submitted";logEvent(CUSTOMER_ME+" submitted a credit-line application");renderCustomer();toast("Application submitted for review");}
+  else if(act==="submit-credit"){closeSheet();var cu=CUSTOMERS.find(function(x){return x.name===CUSTOMER_ME;});if(cu)cu.creditStatus="submitted";var cid="CR-"+(appSeq++);applications.unshift({id:cid,customer:CUSTOMER_ME,date:"Today",status:"review",docs:Object.keys(creditUploaded).length||5});logEvent(CUSTOMER_ME+" submitted a credit-line application ("+cid+")");renderCustomer();toast("Application submitted for review");}
+  else if(act==="app-upload"){var ap=applications.find(function(x){return x.id===el.dataset.id;});if(ap){ap.status="sent";logEvent("Credit agreement sent to "+ap.customer+" ("+ap.id+")");renderOwner();toast("Agreement sent to "+ap.customer);}}
+  else if(act==="app-open"){var ap2=applications.find(function(x){return x.id===el.dataset.id;});if(ap2){ap2.status="approved";var ac=CUSTOMERS.find(function(x){return x.name===ap2.customer;});if(ac)ac.creditStatus="active";logEvent("Credit line opened for "+ap2.customer+" ("+ap2.id+")");renderOwner();toast("Credit line opened for "+ap2.customer);}}
   else if(act==="create-order"){var cu=document.getElementById("no-cust").value;var pr=document.getElementById("no-prod").value;var li=parseInt(document.getElementById("no-litres").value,10)||0;var ad=(document.getElementById("no-addr").value||"").trim()||"Corentyne (Region 6)";if(li<500){toast("Enter at least 500 L");return;}var nid="KI-"+(seq++);orders.unshift({id:nid,customer:cu,prod:pr,litres:li,status:"pending",driver:null,addr:ad,today:true,paid:false,eta:null,proof:null});logEvent(nid+" created by office for "+cu);state.ownerTab="dispatch";closeSheet();renderOwner();toast("Order "+nid+" created");}
   else if(act==="open-receipt")openReceipt(el.dataset.id);
   else if(act==="rate"){receiptRating=parseInt(el.dataset.n,10)||0;openReceipt(receiptId);}
