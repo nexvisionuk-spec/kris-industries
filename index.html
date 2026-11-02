@@ -408,7 +408,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v0.4</span>
+      <span class="v">v0.5</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -466,6 +466,7 @@ var ICONS={
   repeat:'<path d="M4 9l3-3 3 3"/><path d="M7 6h8a4 4 0 0 1 4 4"/><path d="M20 15l-3 3-3-3"/><path d="M17 18H9a4 4 0 0 1-4-4"/>',
   map:'<path d="M9 4L3 7v13l6-3 6 3 6-3V4l-6 3z"/><path d="M9 4v13M15 7v13"/>',
   file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+  coins:'<ellipse cx="9" cy="6" rx="6" ry="2.6"/><path d="M3 6v4c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6V6"/><path d="M9 12.6v3.8c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-4"/><ellipse cx="15" cy="12.4" rx="6" ry="2.6"/>',
   star:'<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.9 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>',
   tanker:'<rect x="2.5" y="8" width="12" height="7" rx="3"/><path d="M14.5 15v-4.5h2.5L20.5 14v1z"/><circle cx="6.5" cy="17" r="1.7"/><circle cx="17.5" cy="17" r="1.7"/><path d="M6 8V6.5M10 8V6.5"/>'
 };
@@ -476,52 +477,59 @@ var PRICE={ulsd:322,lsd:308,gas:341};
 var PROD={ulsd:"Ultra Low Sulphur Diesel",lsd:"Low Sulphur Diesel",gas:"Gasoline"};
 var PSHORT={ulsd:"ULSD",lsd:"LSD",gas:"Gasoline"};
 var DRIVERS=[
-  {id:"rohan",name:"Rohan Persaud",vehicle:"Truck GPP 4417"},
-  {id:"devi", name:"Devi Singh",   vehicle:"River tanker Kris I"},
-  {id:"mark", name:"Mark Austin",  vehicle:"Truck GRR 2290"}
+  {id:"rohan",name:"Rohan Persaud",vehicle:"Truck GAH 1625"},
+  {id:"devi", name:"Devi Singh",   vehicle:"Truck GAD 891"},
+  {id:"mark", name:"Mark Austin",  vehicle:"Truck GAE 8742"}
+];
+var TRUCKS=[
+  {plate:"GAH 1625",driver:"rohan",ulsd:6200,lsd:0,gas:0},
+  {plate:"GAD 891", driver:"devi", ulsd:4800,lsd:3000,gas:0},
+  {plate:"GAE 8742",driver:"mark", ulsd:0,lsd:2500,gas:1800},
+  {plate:"GAF 4410",driver:null,   ulsd:5000,lsd:0,gas:0},
+  {plate:"GBB 2207",driver:null,   ulsd:0,lsd:0,gas:0}
 ];
 var CUSTOMERS=[
-  {name:"Demerara Aggregates Inc.",region:"Region 4",segment:"Aggregates / construction",terms:"14-day",limit:8000000},
-  {name:"Essequibo Fishing Co-op",region:"Region 3",segment:"Fisheries (marine)",terms:"7-day",limit:5000000},
-  {name:"BK Construction",region:"Region 4",segment:"Construction",terms:"30-day",limit:6000000},
-  {name:"Correia Mining Group",region:"Region 8",segment:"Mining",terms:"30-day",limit:15000000},
-  {name:"Pomeroon Farms",region:"Region 2",segment:"Agriculture",terms:"Cash on delivery",limit:1500000}
+  {name:"A.C.S. Guyana",region:"Region 6",segment:"Construction / aggregate",terms:"14-day",limit:8000000},
+  {name:"Skeldon Energy Inc.",region:"Region 6",segment:"Power & sugar estate",terms:"30-day",limit:15000000},
+  {name:"Port Mourant Rice",region:"Region 6",segment:"Rice farming",terms:"14-day",limit:6000000},
+  {name:"Corentyne Sawmills",region:"Region 6",segment:"Logging / sawmilling",terms:"30-day",limit:7000000},
+  {name:"Rose Hall Estate",region:"Region 6",segment:"Agriculture (cane)",terms:"7-day",limit:5000000}
 ];
-var CUSTOMER_ME="Demerara Aggregates Inc.";
+var CUSTOMER_ME="A.C.S. Guyana";
 var DRIVER_ME="rohan";
 
 var orders=[
-  {id:"KI-1043",customer:"Pomeroon Farms",prod:"lsd",litres:2000,status:"pending",driver:null,addr:"Charity, Pomeroon (Region 2)",today:true,paid:false,eta:null,proof:null},
-  {id:"KI-1042",customer:"Demerara Aggregates Inc.",prod:"ulsd",litres:5000,status:"in_transit",driver:"rohan",addr:"Houston, Georgetown (Region 4)",today:true,paid:false,eta:"11:40",etaMin:12,progress:62,distKm:2.1,proof:null},
-  {id:"KI-1041",customer:"Essequibo Fishing Co-op",prod:"lsd",litres:8000,status:"scheduled",driver:"devi",addr:"Parika Stelling (Region 3)",today:true,paid:false,eta:"14:30",proof:null},
-  {id:"KI-1040",customer:"BK Construction",prod:"gas",litres:3000,status:"delivered",driver:"mark",addr:"Providence, EBD (Region 4)",today:true,paid:false,deliveredLitres:3000,proof:{time:"08:52",sig:true,photo:true}},
-  {id:"KI-1039",customer:"Correia Mining Group",prod:"ulsd",litres:12000,status:"scheduled",driver:"rohan",addr:"Mahdia (Region 8)",today:false,paid:false,eta:"Tomorrow 07:00",proof:null},
-  {id:"KI-1038",customer:"Demerara Aggregates Inc.",prod:"ulsd",litres:4000,status:"delivered",driver:"rohan",addr:"Houston, Georgetown (Region 4)",today:false,paid:true,deliveredLitres:3980,proof:{time:"Yesterday 15:10",sig:true,photo:true}}
+  {id:"KI-1043",customer:"Port Mourant Rice",prod:"lsd",litres:2000,status:"pending",driver:null,addr:"Port Mourant, Corentyne (Region 6)",today:true,paid:false,eta:null,proof:null},
+  {id:"KI-1042",customer:"A.C.S. Guyana",prod:"ulsd",litres:5000,status:"in_transit",driver:"rohan",addr:"Rose Hall, Corentyne (Region 6)",today:true,paid:false,eta:"11:40",etaMin:12,progress:58,distKm:3.4,proof:null},
+  {id:"KI-1041",customer:"Skeldon Energy Inc.",prod:"lsd",litres:8000,status:"scheduled",driver:"devi",addr:"Skeldon, Corentyne (Region 6)",today:true,paid:false,eta:"14:30",proof:null},
+  {id:"KI-1040",customer:"Rose Hall Estate",prod:"gas",litres:3000,status:"delivered",driver:"mark",addr:"Rose Hall, Corentyne (Region 6)",today:true,paid:false,deliveredLitres:3000,proof:{time:"08:52",sig:true,photo:true}},
+  {id:"KI-1039",customer:"Corentyne Sawmills",prod:"ulsd",litres:12000,status:"scheduled",driver:"rohan",addr:"Corriverton, Corentyne (Region 6)",today:false,paid:false,eta:"Tomorrow 07:00",proof:null},
+  {id:"KI-1038",customer:"A.C.S. Guyana",prod:"ulsd",litres:4000,status:"delivered",driver:"rohan",addr:"Rose Hall, Corentyne (Region 6)",today:false,paid:true,deliveredLitres:3980,proof:{time:"Yesterday 15:10",sig:true,photo:true}}
 ];
 var stock={ulsd:62,lsd:34,gas:71};
 var CAP={ulsd:50000,lsd:40000,gas:30000};
 var activity=[
-  {t:"08:52",text:"KI-1040 delivered to BK Construction — proof captured"},
-  {t:"08:30",text:"KI-1042 dispatched to Rohan Persaud"},
-  {t:"07:15",text:"KI-1041 scheduled — Essequibo Co-op (river delivery)"}
+  {t:"08:52",text:"KI-1040 delivered to Rose Hall Estate — proof captured"},
+  {t:"08:30",text:"KI-1042 dispatched to Rohan Persaud (GAH 1625)"},
+  {t:"07:15",text:"KI-1041 scheduled — Skeldon Energy"}
 ];
 var seq=1044;
 var driverMsgs=[
-  {who:"them",t:"07:02",text:"Morning Rohan — 3 stops today. Aggregates (Houston) first, it’s priority."},
-  {who:"me",t:"07:05",text:"Copy. Loading ULSD now, rolling by 07:30."},
-  {who:"them",t:"07:41",text:"Correia (Mahdia) moved to tomorrow 07:00. Focus the two coastal drops."}
+  {who:"them",t:"07:02",text:"Morning Rohan — 3 stops today. A.C.S. (Rose Hall) first, it’s priority."},
+  {who:"me",t:"07:05",text:"Copy. Loading diesel now, rolling by 07:30."},
+  {who:"them",t:"07:41",text:"Sawmills (Corriverton) moved to tomorrow 07:00. Focus the two Corentyne drops."}
 ];
 var CUST_SITES=[
-  {name:"Houston yard, Georgetown",region:"Region 4",primary:true},
-  {name:"Providence site B, EBD",region:"Region 4"},
-  {name:"Eccles batching plant",region:"Region 4"}
+  {name:"Rose Hall yard, Corentyne",region:"Region 6",primary:true},
+  {name:"No. 19 Village site",region:"Region 6"},
+  {name:"Albion estate depot",region:"Region 6"}
 ];
 var JOB_INSTR={
-  "Demerara Aggregates Inc.":"Enter via Houston gate 2, ask for the site foreman.",
-  "Essequibo Fishing Co-op":"River delivery — confirm tide window before offloading.",
-  "Pomeroon Farms":"Call on arrival; farm access road after the bridge.",
-  "Correia Mining Group":"Interior route — 4x4 escort past Mahdia junction.",
-  "BK Construction":"Deliver to rear tank; security sign-in required."
+  "A.C.S. Guyana":"Water-test the tank before offloading; ask for the site foreman.",
+  "Skeldon Energy Inc.":"Gate pass required; report to the estate weighbridge.",
+  "Port Mourant Rice":"Call on arrival; access road behind the mill.",
+  "Corentyne Sawmills":"Deliver to the generator tank; mind the log-yard traffic.",
+  "Rose Hall Estate":"Estate tank at the back; security sign-in required."
 };
 
 function fmt(n){return Math.round(n).toLocaleString("en-US");}
@@ -567,9 +575,9 @@ function customerSignup(){
   var dots='<div class="stepper"><span class="s'+(step>=1?' on':'')+'"></span><span class="s'+(step>=2?' on':'')+'"></span><span class="s'+(step>=3?' on':'')+'"></span></div>';
   var content;
   if(step===1)content='<h2>Open an account</h2><div class="lead">Step 1 of 3 · Your business</div>'+
-    '<div class="field"><label>Company name</label><input type="text" placeholder="e.g. Demerara Aggregates Inc."></div>'+
-    '<div class="field"><label>Business type</label><select><option>Construction</option><option>Aggregates supplier</option><option>Fisheries</option><option>Mining / logging</option><option>Agriculture</option><option>Transport / fleet</option></select></div>'+
-    '<div class="field"><label>Region</label><select><option>Region 4 — Demerara-Mahaica</option><option>Region 3 — Essequibo Islands</option><option>Region 2 — Pomeroon</option><option>Region 8 — Potaro-Siparuni</option><option>Region 10 — Upper Demerara</option></select></div>';
+    '<div class="field"><label>Company name</label><input type="text" placeholder="e.g. A.C.S. Guyana"></div>'+
+    '<div class="field"><label>Business type</label><select><option>Construction / aggregate</option><option>Rice farming</option><option>Sugar estate</option><option>Logging / sawmilling</option><option>Mining</option><option>Transport / fleet</option></select></div>'+
+    '<div class="field"><label>Region</label><select><option>Region 6 — East Berbice-Corentyne</option><option>Region 5 — Mahaica-Berbice</option><option>Region 4 — Demerara-Mahaica</option><option>Region 10 — Upper Demerara</option><option>Region 3 — Essequibo Islands</option></select></div>';
   else if(step===2)content='<h2>Open an account</h2><div class="lead">Step 2 of 3 · Contact & login</div>'+
     '<div class="field"><label>Full name</label><input type="text" placeholder="Contact person"></div>'+
     '<div class="field"><label>Phone</label><input type="tel" placeholder="+592 …"></div>'+
@@ -632,7 +640,7 @@ function renderOwner(){
   var c=ownerCounts();
   var groups=[
     ["Operations",[["overview","Overview","grid",0],["orders","Orders","list",0],["dispatch","Dispatch","truck",c.pending]]],
-    ["Business",[["billing","Billing","cash",c.unpaid],["customers","Customers","users",0],["reports","Reports","chart",0]]],
+    ["Business",[["billing","Billing","cash",c.unpaid],["finance","Finance","coins",0],["customers","Customers","users",0],["reports","Reports","chart",0]]],
     ["Inventory",[["stock","Stock & tanks","drop",0]]],
     ["Account",[["settings","Settings","user",0]]]
   ];
@@ -649,6 +657,7 @@ function ownerPanel(){
     case "billing":return panelBilling();
     case "customers":return panelCustomers();
     case "reports":return panelReports();
+    case "finance":return panelFinance();
     case "stock":return panelStock();
     case "settings":return panelSettings();
     default:return panelOverview();
@@ -671,48 +680,47 @@ function panelOverview(){
   if(stock.lsd<40)att.push('<div class="r crit">'+ic("alert")+'<span>Low Sulphur Diesel tank at '+stock.lsd+'% — reorder</span><span class="tag">Stock</span></div>');
   if(c.pending)att.push('<div class="r warn">'+ic("truck")+'<span>'+c.pending+' order(s) need a driver assigned</span><span class="tag">Dispatch</span></div>');
   if(c.unpaid)att.push('<div class="r">'+ic("cash")+'<span>'+c.unpaid+' delivered order(s) unpaid — '+gyd(outstanding)+'</span><span class="tag">Billing</span></div>');
-  return '<div class="panel-h"><h2>Overview</h2><span class="meta">Mon 26 Oct · Georgetown depot</span></div>'+
+  return '<div class="panel-h"><h2>Overview</h2><span class="meta">Mon 26 Oct · Corriverton depot</span></div>'+
     '<div class="block"><div class="stats">'+stats+'</div></div>'+
-    '<div class="block" style="overflow:hidden"><div class="bh"><h3>'+ic("pin")+'Live delivery</h3><span class="st" data-s="in_transit"><span class="d"></span>Georgetown corridor</span></div>'+routeMap()+tripFoot+'</div>'+
+    '<div class="block" style="overflow:hidden"><div class="bh"><h3>'+ic("pin")+'Live delivery</h3><span class="st" data-s="in_transit"><span class="d"></span>Corentyne corridor</span></div>'+routeMap()+tripFoot+'</div>'+
     '<div class="block"><div class="bh"><h3>'+ic("alert")+'Needs attention</h3></div><div class="att">'+(att.join("")||'<div class="empty">Nothing needs attention.</div>')+'</div></div>';
 }
 function routeMap(){
   var trip=orders.find(function(x){return x.status==="in_transit";});var tid=trip?trip.id:"KI-1042";
-  return '<div class="mapwrap"><svg class="routemap" viewBox="0 0 800 320" role="img" aria-label="Delivery route across Georgetown, East Bank Demerara"><g id="mv">'+
-    /* water: Atlantic coast + Demerara River */
-    '<path class="water" d="M0,0 L800,0 L800,38 Q600,60 400,46 Q200,33 0,60 Z"/>'+
-    '<path class="water" d="M0,60 Q82,52 122,80 Q150,150 150,320 L0,320 Z"/>'+
-    /* parkland / fields */
-    '<ellipse class="green" cx="662" cy="248" rx="112" ry="58"/>'+
-    '<ellipse class="green" cx="432" cy="288" rx="82" ry="38"/>'+
-    /* city blocks */
-    '<g class="bld"><rect x="430" y="150" width="30" height="22"/><rect x="466" y="150" width="34" height="22"/><rect x="506" y="150" width="34" height="22"/><rect x="546" y="150" width="30" height="22"/><rect x="600" y="156" width="34" height="24"/>'+
-    '<rect x="430" y="178" width="30" height="22"/><rect x="466" y="178" width="34" height="22"/><rect x="506" y="178" width="34" height="22"/><rect x="546" y="178" width="30" height="22"/><rect x="600" y="188" width="34" height="24"/></g>'+
-    /* tertiary streets */
-    '<path class="rd2" stroke-width="1.5" d="M250,118 L775,104"/><path class="rd2" stroke-width="1.5" d="M345,100 L372,295"/><path class="rd2" stroke-width="1.5" d="M455,92 L488,292"/><path class="rd2" stroke-width="1.5" d="M600,96 L636,300"/><path class="rd2" stroke-width="1.5" d="M360,80 L384,290"/><path class="rd2" stroke-width="1.5" d="M250,172 L772,162"/><path class="rd2" stroke-width="1.5" d="M258,248 L712,238"/>'+
-    /* secondary grid */
-    '<path class="rd2" stroke-width="3" d="M300,74 L332,298"/><path class="rd2" stroke-width="3" d="M402,68 L430,298"/><path class="rd2" stroke-width="3" d="M505,66 L548,296"/>'+
-    '<path class="rd2" stroke-width="3" d="M196,142 L762,132"/><path class="rd2" stroke-width="3" d="M214,212 L742,202"/><path class="rd2" stroke-width="3" d="M236,272 L720,262"/><path class="rd2" stroke-width="3" d="M520,66 L700,300"/>'+
-    /* cross street along the coast (unrelated traffic) */
-    '<path class="rd2" stroke-width="5" d="M160,66 Q420,54 792,52"/>'+
-    /* the delivery route follows real streets: west along a coastal avenue, then south down the East Bank road toward Houston. Grey road + blue route share the SAME spine, with 90-degree turns like a real city route. */
-    '<path class="rd2" stroke-width="12" opacity="0.5" d="M668,118 L430,118 Q398,118 393,150 L372,235 Q369,258 346,262 L258,262"/>'+
-    '<path class="rd" stroke-width="7.5" d="M668,118 L430,118 Q398,118 393,150 L372,235 Q369,258 346,262 L258,262"/>'+
-    /* route travelled (solid) + remaining (dashed) — exact sub-segments of the road above */
-    '<path class="rte" stroke-width="4.5" d="M668,118 L520,118"/>'+
-    '<path class="rte" stroke-width="4.5" stroke-dasharray="1 8" stroke-opacity="0.6" d="M520,118 L430,118 Q398,118 393,150 L372,235 Q369,258 346,262 L258,262"/>'+
+  return '<div class="mapwrap"><svg class="routemap" viewBox="0 0 800 320" role="img" aria-label="Delivery route along the Corentyne Highway, East Berbice"><g id="mv">'+
+    /* water: Atlantic coast (top) + Corentyne River (right) */
+    '<path class="water" d="M0,0 L800,0 L800,44 Q600,62 380,52 Q190,44 0,62 Z"/>'+
+    '<path class="water" d="M800,44 Q726,58 712,130 Q706,235 742,320 L800,320 Z"/>'+
+    /* cane fields inland */
+    '<ellipse class="green" cx="300" cy="274" rx="165" ry="56"/>'+
+    '<ellipse class="green" cx="595" cy="288" rx="150" ry="46"/>'+
+    /* village blocks (Rose Hall & Corriverton) */
+    '<g class="bld"><rect x="210" y="156" width="30" height="20"/><rect x="246" y="156" width="30" height="20"/><rect x="210" y="180" width="30" height="20"/><rect x="246" y="180" width="30" height="20"/>'+
+    '<rect x="520" y="156" width="32" height="20"/><rect x="558" y="156" width="32" height="20"/><rect x="520" y="180" width="32" height="20"/><rect x="558" y="180" width="32" height="20"/></g>'+
+    /* feeder roads off the highway */
+    '<path class="rd2" stroke-width="2.5" d="M120,122 L132,300"/><path class="rd2" stroke-width="2.5" d="M250,122 L262,300"/><path class="rd2" stroke-width="2.5" d="M400,122 L414,300"/><path class="rd2" stroke-width="2.5" d="M560,122 L574,300"/>'+
+    '<path class="rd2" stroke-width="1.5" d="M60,152 L688,150"/><path class="rd2" stroke-width="1.5" d="M80,210 L700,206"/>'+
+    /* Corentyne Highway (main road) — the delivery runs along it, bending toward Skeldon */
+    '<path class="rd2" stroke-width="12" opacity="0.5" d="M30,122 L636,122 Q664,122 678,100 L694,82"/>'+
+    '<path class="rd" stroke-width="7.5" d="M30,122 L636,122 Q664,122 678,100 L694,82"/>'+
+    /* route travelled (solid) + remaining (dashed) along the highway */
+    '<path class="rte" stroke-width="4.5" d="M560,122 L400,122"/>'+
+    '<path class="rte" stroke-width="4.5" stroke-dasharray="1 8" stroke-opacity="0.6" d="M400,122 L250,122"/>'+
     /* labels */
-    '<text class="lbl-w" x="430" y="27" text-anchor="middle">ATLANTIC OCEAN</text>'+
-    '<text class="lbl-w" x="58" y="210" text-anchor="middle" transform="rotate(-82 58 210)">DEMERARA RIVER</text>'+
-    '<text class="lbl" x="500" y="175">Georgetown</text>'+
-    '<text class="lbl-sm" x="352" y="205" transform="rotate(88 352 205)">East Bank Rd</text>'+
-    '<text class="lbl-sm" x="300" y="250">Houston</text><text class="lbl-sm" x="470" y="300">Agricola</text><text class="lbl-sm" x="640" y="236">Ruimveldt</text>'+
-    /* depot marker — at the road start */
-    '<g transform="translate(668,118)"><rect class="mk-r" x="-8" y="-8" width="16" height="16" rx="4" stroke="#fff" stroke-width="2"/></g><text class="lbl" x="668" y="103" text-anchor="middle">Depot</text>'+
-    /* destination pin — at the road end */
-    '<g transform="translate(258,262)"><path class="mk-d" d="M0,0 C-9,-14 -9,-21 0,-25 C9,-21 9,-14 0,0 Z" stroke="#fff" stroke-width="1.5"/><circle cx="0" cy="-16" r="3" fill="#fff"/></g><text class="lbl" x="258" y="288" text-anchor="middle">Aggregates</text>'+
-    /* vehicle marker — navigation puck on the road, arrow points the way it is heading (west) (tap for trip details) */
-    '<g transform="translate(520,118)" data-act="open-trip" data-id="'+tid+'" style="cursor:pointer"><circle r="26" fill="transparent"/><circle class="veh-pulse" r="15"/><circle class="veh-disc" r="14"/><g transform="rotate(-90)"><path class="veh-arrow" d="M0,-7.5 L6.5,7 L0,3.3 L-6.5,7 Z"/></g></g>'+
+    '<text class="lbl-w" x="380" y="28" text-anchor="middle">ATLANTIC OCEAN</text>'+
+    '<text class="lbl-w" x="768" y="206" text-anchor="middle" transform="rotate(84 768 206)">CORENTYNE R.</text>'+
+    '<text class="lbl-sm" x="40" y="112">Corentyne Highway</text>'+
+    '<text class="lbl-sm" x="95" y="150">New Amsterdam</text>'+
+    '<text class="lbl-sm" x="400" y="150">Port Mourant</text>'+
+    '<text class="lbl-sm" x="662" y="74">Skeldon</text>'+
+    '<text class="lbl-sm" x="560" y="168">Corriverton</text>'+
+    '<text class="lbl-sm" x="250" y="168">Rose Hall</text>'+
+    /* depot marker — Corriverton */
+    '<g transform="translate(560,122)"><rect class="mk-r" x="-8" y="-8" width="16" height="16" rx="4" stroke="#fff" stroke-width="2"/></g><text class="lbl" x="560" y="106" text-anchor="middle">Depot</text>'+
+    /* destination pin — A.C.S. at Rose Hall */
+    '<g transform="translate(250,122)"><path class="mk-d" d="M0,0 C-9,-14 -9,-21 0,-25 C9,-21 9,-14 0,0 Z" stroke="#fff" stroke-width="1.5"/><circle cx="0" cy="-16" r="3" fill="#fff"/></g><text class="lbl" x="250" y="106" text-anchor="middle">A.C.S.</text>'+
+    /* vehicle marker — navigation puck heading west toward A.C.S. (tap for trip details) */
+    '<g transform="translate(400,122)" data-act="open-trip" data-id="'+tid+'" style="cursor:pointer"><circle r="26" fill="transparent"/><circle class="veh-pulse" r="15"/><circle class="veh-disc" r="14"/><g transform="rotate(-90)"><path class="veh-arrow" d="M0,-7.5 L6.5,7 L0,3.3 L-6.5,7 Z"/></g></g>'+
   '</g></svg>'+
   '<div class="mapbadge">'+ic("tanker")+'Live · '+tid+'</div>'+
   '<div class="mapctrl"><button type="button" data-act="map-zoom" data-dir="in" aria-label="Zoom in">+</button><button type="button" data-act="map-zoom" data-dir="out" aria-label="Zoom out">−</button><button type="button" data-act="map-zoom" data-dir="reset" aria-label="Recenter">'+ic("pin")+'</button></div>'+
@@ -801,19 +809,63 @@ function panelSettings(){
     '<div class="block"><div class="bh"><h3>'+ic("user")+'Company</h3></div><div class="bd">'+
       '<div class="kv"><span class="k">Name</span><span class="vv">Kris Industries</span></div>'+
       '<div class="kv"><span class="k">GEA licence</span><span class="vv">Import & Wholesale</span></div>'+
-      '<div class="kv"><span class="k">Depot</span><span class="vv">Georgetown (Region 4)</span></div>'+
+      '<div class="kv"><span class="k">Depot</span><span class="vv">Corriverton, Berbice (Region 6)</span></div>'+
       '<div class="kv"><span class="k">Products</span><span class="vv">ULSD · LSD · Gasoline</span></div>'+
       '<div class="kv"><span class="k">Currency</span><span class="vv">GYD</span></div>'+
     '</div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("users")+'Team & access</h3><span class="tag">'+team.length+' users</span></div><div class="bd flush"><div class="tw"><table><thead><tr><th>User</th><th>Role</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>'+
     '<button class="btn ghost" data-act="logout" data-role="owner">Sign out</button>';
 }
+function panelFinance(){
+  var sold=57000, rev=18420000, cogs=14200000, gross=rev-cogs;
+  var exp=[["Salaries & wages",1200000],["Vehicle & tanker maintenance",380000],["Fuel marking / GEA fees",95000],["Depot rent & utilities",250000],["Other operating",180000]];
+  var opex=exp.reduce(function(a,e){return a+e[1];},0), taxes=420000, net=gross-opex-taxes;
+  var salaries=[["Office / dispatch",180000],["Rohan Persaud (driver)",140000],["Devi Singh (driver)",140000],["Mark Austin (driver)",140000],["Depot hands (x2)",160000]];
+  var stat=function(l,v,cls){return '<div class="stat'+(cls?' '+cls:'')+'"><div class="l">'+l+'</div><div class="v">'+fmt(v)+' <small>GYD</small></div></div>';};
+  return '<div class="panel-h"><h2>Finance</h2><span class="meta">this week · owner/admin only</span></div>'+
+    '<div class="block"><div class="stats">'+stat("Revenue",rev)+stat("Cost of goods",cogs)+stat("Gross profit",gross,"good")+stat("Net profit",net,net<0?"warn":"good")+'</div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("chart")+'Weekly profit</h3><span class="tag">'+fmt(sold)+' L sold</span></div><div class="bd">'+
+      '<div class="kv"><span class="k">Fuel sold</span><span class="vv">'+fmt(sold)+' L</span></div>'+
+      '<div class="kv"><span class="k">Revenue</span><span class="vv">'+gyd(rev)+'</span></div>'+
+      '<div class="kv"><span class="k">Cost of goods (fuel bought)</span><span class="vv">− '+gyd(cogs)+'</span></div>'+
+      '<div class="kv"><span class="k">Gross profit</span><span class="vv">'+gyd(gross)+'</span></div>'+
+      '<div class="kv"><span class="k">Operating expenses</span><span class="vv">− '+gyd(opex)+'</span></div>'+
+      '<div class="kv"><span class="k">Taxes (est.)</span><span class="vv">− '+gyd(taxes)+'</span></div>'+
+      '<div class="kv"><span class="k" style="font-weight:700">Net profit</span><span class="vv" style="font-weight:700;color:var(--ok)">'+gyd(net)+'</span></div>'+
+    '</div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("cash")+'Expenses</h3></div><div class="bd">'+exp.map(function(e){return '<div class="kv"><span class="k">'+e[0]+'</span><span class="vv">'+gyd(e[1])+'</span></div>';}).join("")+'<div class="kv"><span class="k" style="font-weight:700">Total</span><span class="vv" style="font-weight:700">'+gyd(opex)+'</span></div></div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("users")+'Salaries</h3></div><div class="bd">'+salaries.map(function(s){return '<div class="kv"><span class="k">'+s[0]+'</span><span class="vv">'+gyd(s[1])+' /mo</span></div>';}).join("")+'</div></div>'+
+    '<div style="display:flex;gap:9px"><button class="btn ghost" data-act="export" data-fmt="Excel" style="flex:1">'+ic("file")+'Export Excel</button><button class="btn ghost" data-act="export" data-fmt="PDF" style="flex:1">'+ic("file")+'Export PDF</button></div>'+
+    '<p class="hint" style="text-align:center;margin-top:10px">'+ic("user")+' Restricted — only Owner/Admin roles can view Finance.</p>';
+}
 function panelStock(){
   var keys=["ulsd","lsd","gas"];
   var tanks=keys.map(function(k){var low=stock[k]<40;var litres=Math.round(CAP[k]*stock[k]/100);
     return '<div class="tank'+(low?' low':'')+'"><div class="top"><div class="nm">'+PROD[k]+'<small>cap '+fmt(CAP[k])+' L</small></div><div class="pct">'+stock[k]+'%</div></div><div class="meter"><span style="width:'+stock[k]+'%"></span></div><div class="sub">≈ '+fmt(litres)+' L on hand'+(low?' · reorder recommended':'')+'</div></div>';
   }).join("");
-  return '<div class="panel-h"><h2>Stock & tanks</h2><span class="meta">Georgetown depot</span></div><div class="block"><div class="bd flush">'+tanks+'</div></div><div class="callout" style="margin:0"><div class="h">'+ic("alert")+'Reorder point</div><p>LSD is below the 40% threshold. In the full build this triggers an automatic reorder draft to your supplier.</p></div>';
+  var tU=0,tL=0,tG=0;
+  var truckRows=TRUCKS.map(function(t){var tot=t.ulsd+t.lsd+t.gas;tU+=t.ulsd;tL+=t.lsd;tG+=t.gas;
+    return '<tr><td><span class="cust">'+esc(t.plate)+'</span><div class="seg">'+(t.driver?esc(driverName(t.driver)):"Unassigned")+'</div></td><td class="num">'+fmt(t.ulsd)+'</td><td class="num">'+fmt(t.lsd)+'</td><td class="num">'+fmt(t.gas)+'</td><td class="num">'+fmt(tot)+'</td></tr>';
+  }).join("");
+  var grand=tU+tL+tG;
+  var totRow='<tr><td style="font-weight:700">All trucks</td><td class="num" style="font-weight:700">'+fmt(tU)+'</td><td class="num" style="font-weight:700">'+fmt(tL)+'</td><td class="num" style="font-weight:700">'+fmt(tG)+'</td><td class="num" style="font-weight:700">'+fmt(grand)+'</td></tr>';
+  return '<div class="panel-h"><h2>Stock & tanks</h2><span class="meta">Corriverton depot</span></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("drop")+'Depot tanks</h3></div><div class="bd flush">'+tanks+'</div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("truck")+'Fuel on trucks</h3><button class="btn sm" data-act="open-transfer">'+ic("repeat")+'Transfer</button></div><div class="bd flush"><div class="tw"><table><thead><tr><th>Truck</th><th class="num">ULSD</th><th class="num">LSD</th><th class="num">Gas</th><th class="num">Total (L)</th></tr></thead><tbody>'+truckRows+totRow+'</tbody></table></div></div></div>'+
+    '<div class="callout" style="margin:0"><div class="h">'+ic("alert")+'Reorder point</div><p>LSD depot tank is below the 40% threshold. In the full build this triggers an automatic reorder draft to your supplier.</p></div>';
+}
+function openTransfer(){
+  var opts=TRUCKS.map(function(t,i){return '<option value="'+i+'">'+esc(t.plate)+(t.driver?" — "+esc(driverName(t.driver)):"")+'</option>';}).join("");
+  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+    '<div class="sh-top"><h3>Transfer fuel between trucks</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+    '<div class="sh-sub">Move stock from one truck to another — the overall total stays the same</div>'+
+    '<div class="field"><label>From truck</label><select id="tr-from">'+opts+'</select></div>'+
+    '<div class="field"><label>To truck</label><select id="tr-to">'+opts+'</select></div>'+
+    '<div class="field"><label>Product</label><select id="tr-prod"><option value="ulsd">Ultra Low Sulphur Diesel</option><option value="lsd">Low Sulphur Diesel</option><option value="gas">Gasoline</option></select></div>'+
+    '<div class="field"><label>Litres</label><input id="tr-litres" type="number" value="1000" step="100"></div>'+
+    '<button class="btn block" data-act="do-transfer">'+ic("repeat")+'Transfer</button>'+
+  '</div></div>';
+  var toSel=document.getElementById("tr-to");if(toSel&&TRUCKS.length>1)toSel.selectedIndex=1;
 }
 
 /* ---------- shared phone shell ---------- */
@@ -954,6 +1006,11 @@ function custAccount(){
     '<div class="block"><div class="bh"><h3>'+ic("cash")+'Credit</h3></div><div class="bd">'+
       '<div class="meter"><span style="width:'+used+'%;background:'+(used>80?'var(--crit)':'var(--ink)')+'"></span></div>'+
       '<div class="faint sm mono" style="margin-top:6px">'+gyd(bal)+' of '+gyd(cu.limit||0)+' used · '+used+'%</div></div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("file")+'Credit line</h3>'+(cu.creditStatus==="submitted"?'<span class="st" data-s="scheduled"><span class="d"></span>Under review</span>':'')+'</div><div class="bd">'+
+      (cu.creditStatus==="submitted"
+        ? '<p class="muted sm" style="margin:0">Your application and documents are with Kris Industries for verification. You’ll receive a credit agreement to e-sign once approved.</p>'
+        : '<p class="muted sm" style="margin:0 0 11px">Apply for a credit line to order on account. Upload a few documents; once verified you’ll e-sign a credit agreement.</p><button class="btn block" data-act="apply-credit">'+ic("plus")+'Apply for a credit line</button>')+
+    '</div></div>'+
     '<div class="block"><div class="bd">'+
       '<div class="kv"><span class="k">Region</span><span class="vv">'+esc(cu.region||"")+'</span></div>'+
       '<div class="kv"><span class="k">Payment terms</span><span class="vv">'+esc(cu.terms||"")+'</span></div>'+
@@ -983,10 +1040,25 @@ function renderCustomer(){
 
 /* ---------- delivery sheet ---------- */
 var sheetState=null;
+var SLIP=2462;
 function openDeliver(id){
   var o=orders.find(function(x){return x.id===id;});if(!o)return;
+  var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
   sheetState={id:id,photo:false,hasSig:false};
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet"><div class="sh-top"><h3>Confirm delivery</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div><div class="sh-sub">'+esc(o.customer)+' · '+PSHORT[o.prod]+' · '+esc(o.addr)+'</div><div class="flabel">Litres delivered (metered)</div><input id="dl" class="dl-input" type="number" value="'+o.litres+'" step="10" style="margin-bottom:15px"><div class="flabel">Customer signature</div><div class="sig"><canvas id="sig" width="800" height="240"></canvas><div class="ph" id="sigph">Sign here</div></div><div class="sig-act"><span class="muted sm">Signed on glass</span><button class="link" data-act="clear-sig">Clear</button></div><div class="flabel" style="margin-top:15px">Delivery photo</div><div id="photo-slot"><button class="photo" data-act="add-photo">'+ic("camera")+'Capture photo of meter / drop</button></div><button class="btn block" data-act="complete-delivery" style="margin-top:17px">'+ic("check")+'Complete & save proof</button><p class="hint" style="text-align:center;margin:9px 0 0">Timestamped and geotagged automatically</p></div></div>';
+  var notes=["Water test OK — tank clear","Delivered in full","Partial — balance to follow","Tank gauged before & after","Meter reading verified"];
+  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+    '<div class="sh-top"><h3>Generate delivery ticket</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+    '<div class="sh-sub">Bulk Depot Fuel Delivery Slip · No. '+SLIP+'</div>'+
+    '<div class="review" style="margin-bottom:14px"><div class="kv"><span class="k">Date</span><span class="vv">Today</span></div><div class="kv"><span class="k">Client</span><span class="vv">'+esc(o.customer)+'</span></div><div class="kv"><span class="k">Truck</span><span class="vv">'+esc(d.vehicle)+'</span></div><div class="kv"><span class="k">Product</span><span class="vv">'+PROD[o.prod]+'</span></div></div>'+
+    '<div class="flabel">Litres delivered (metered)</div><input id="dl" class="dl-input" type="number" value="'+o.litres+'" step="10" style="margin-bottom:14px">'+
+    '<div class="field"><label>Received by (name)</label><input id="rcv" type="text" placeholder="Name of person receiving fuel"></div>'+
+    '<div class="field"><label>Delivery note</label><select id="dnote">'+notes.map(function(n){return '<option>'+esc(n)+'</option>';}).join("")+'</select></div>'+
+    '<label style="display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--muted);background:var(--ok-bg);border:1px solid var(--ok);border-radius:6px;padding:10px 12px"><input type="checkbox" id="wtest" checked style="width:18px;height:18px;accent-color:var(--ok);flex:none;margin-top:1px"><span><b style="color:var(--ok)">Water test OK</b> — tank checked for condensation before offload</span></label>'+
+    '<div class="flabel" style="margin-top:14px">Receiver signature</div><div class="sig"><canvas id="sig" width="800" height="240"></canvas><div class="ph" id="sigph">Sign here</div></div><div class="sig-act"><span class="muted sm">Signed on glass</span><button class="link" data-act="clear-sig">Clear</button></div>'+
+    '<div class="flabel" style="margin-top:15px">Delivery photo</div><div id="photo-slot"><button class="photo" data-act="add-photo">'+ic("camera")+'Capture photo of meter / drop</button></div>'+
+    '<button class="btn block" data-act="complete-delivery" style="margin-top:17px">'+ic("check")+'Save & generate ticket</button>'+
+    '<p class="hint" style="text-align:center;margin:9px 0 0">Timestamped & geotagged · emailed to client as PDF</p>'+
+  '</div></div>';
   initSig();
 }
 function initSig(){
@@ -1062,12 +1134,23 @@ function openPretrip(){
 }
 
 /* ---------- owner: new order sheet ---------- */
+var CREDIT_DOCS=["2 forms of ID (passport / licence / ID card)","Guarantee — bank guarantee or pledged asset","Business financials","Business registration","2 character references"];
+var creditUploaded={};
+function openCreditApply(){
+  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+    '<div class="sh-top"><h3>Apply for a credit line</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+    '<div class="sh-sub">Upload the required documents. Kris Industries verifies them, runs checks, then sends a credit agreement to e-sign.</div>'+
+    CREDIT_DOCS.map(function(d,i){var up=creditUploaded[i];return '<div class="site">'+ic(up?"check":"file")+'<div style="flex:1"><div class="nm">'+esc(d)+'</div></div>'+(up?'<span class="pill-paid">Uploaded</span>':'<button class="btn ghost sm" data-act="upload-doc" data-i="'+i+'">Upload</button>')+'</div>';}).join("")+
+    '<button class="btn block" data-act="submit-credit" style="margin-top:14px">'+ic("send")+'Submit application</button>'+
+    '<p class="hint" style="text-align:center;margin:9px 0 0">Personal & business documents are stored securely in your account.</p>'+
+  '</div></div>';
+}
 function openAddSite(){
   document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
     '<div class="sh-top"><h3>Add delivery site</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">A new drop-off location for your orders</div>'+
     '<div class="field"><label>Site name</label><input id="as-name" type="text" placeholder="e.g. Diamond yard"></div>'+
-    '<div class="field"><label>Region</label><select id="as-region"><option>Region 4</option><option>Region 3</option><option>Region 2</option><option>Region 8</option><option>Region 10</option></select></div>'+
+    '<div class="field"><label>Region</label><select id="as-region"><option>Region 6</option><option>Region 5</option><option>Region 4</option><option>Region 10</option></select></div>'+
     '<button class="btn block" data-act="save-site">'+ic("plus")+'Add site</button>'+
   '</div></div>';
 }
@@ -1092,12 +1175,14 @@ function openReceipt(id){
   if(receiptId!==id)receiptRating=o.rating||0; receiptId=id;
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
   document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
-    '<div class="sh-top"><h3>Receipt '+o.id+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+    '<div class="sh-top"><h3>Delivery ticket '+(o.slip?("#"+o.slip):o.id)+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div style="margin-bottom:13px">'+stChip("delivered")+'</div>'+
     '<div class="rsum"><div class="big">'+fmt(o.deliveredLitres||o.litres)+' L</div><div class="sub">'+PROD[o.prod]+' delivered '+esc(o.proof?o.proof.time:"")+'</div></div>'+
     '<div class="block"><div class="bd">'+
       '<div class="kv"><span class="k">Driver</span><span class="vv">'+esc(d.name)+'</span></div>'+
-      '<div class="kv"><span class="k">Vehicle</span><span class="vv">'+esc(d.vehicle)+'</span></div>'+
+      '<div class="kv"><span class="k">Truck</span><span class="vv">'+esc(d.vehicle)+'</span></div>'+
+      (o.proof&&o.proof.receiver?'<div class="kv"><span class="k">Received by</span><span class="vv">'+esc(o.proof.receiver)+'</span></div>':'')+
+      (o.proof&&o.proof.waterTest?'<div class="kv"><span class="k">Water test</span><span class="vv"><span class="pill-paid">OK</span></span></div>':'')+
       '<div class="kv"><span class="k">Proof</span><span class="vv">'+((o.proof&&o.proof.sig)?"Signature":"—")+((o.proof&&o.proof.photo)?" + photo":"")+'</span></div>'+
       '<div class="kv"><span class="k">Amount</span><span class="vv">'+gyd(value(o))+'</span></div>'+
       '<div class="kv"><span class="k">Payment</span><span class="vv">'+(o.paid?'<span class="pill-paid">Paid</span>':'<span class="pill-due">Due</span>')+'</span></div>'+
@@ -1129,14 +1214,20 @@ document.addEventListener("click",function(e){
   else if(act==="open-deliver")openDeliver(el.dataset.id);
   else if(act==="open-trip")openTrip(el.dataset.id);
   else if(act==="open-new-order")openNewOrder();
-  else if(act==="create-order"){var cu=document.getElementById("no-cust").value;var pr=document.getElementById("no-prod").value;var li=parseInt(document.getElementById("no-litres").value,10)||0;var ad=(document.getElementById("no-addr").value||"").trim()||"Georgetown (Region 4)";if(li<500){toast("Enter at least 500 L");return;}var nid="KI-"+(seq++);orders.unshift({id:nid,customer:cu,prod:pr,litres:li,status:"pending",driver:null,addr:ad,today:true,paid:false,eta:null,proof:null});logEvent(nid+" created by office for "+cu);state.ownerTab="dispatch";closeSheet();renderOwner();toast("Order "+nid+" created");}
+  else if(act==="open-transfer")openTransfer();
+  else if(act==="do-transfer"){var fi=parseInt(document.getElementById("tr-from").value,10);var ti=parseInt(document.getElementById("tr-to").value,10);var tp=document.getElementById("tr-prod").value;var tl=parseInt(document.getElementById("tr-litres").value,10)||0;if(fi===ti){toast("Pick two different trucks");return;}if(tl<=0){toast("Enter litres");return;}if(TRUCKS[fi][tp]<tl){toast("Not enough "+PSHORT[tp]+" on "+TRUCKS[fi].plate);return;}TRUCKS[fi][tp]-=tl;TRUCKS[ti][tp]+=tl;logEvent(fmt(tl)+" L "+PSHORT[tp]+" moved "+TRUCKS[fi].plate+" → "+TRUCKS[ti].plate);closeSheet();renderOwner();toast("Transferred "+fmt(tl)+" L "+PSHORT[tp]);}
+  else if(act==="export"){toast("Exporting to "+(el.dataset.fmt||"file")+"…");}
+  else if(act==="apply-credit")openCreditApply();
+  else if(act==="upload-doc"){creditUploaded[el.dataset.i]=true;openCreditApply();}
+  else if(act==="submit-credit"){closeSheet();var cu=CUSTOMERS.find(function(x){return x.name===CUSTOMER_ME;});if(cu)cu.creditStatus="submitted";logEvent(CUSTOMER_ME+" submitted a credit-line application");renderCustomer();toast("Application submitted for review");}
+  else if(act==="create-order"){var cu=document.getElementById("no-cust").value;var pr=document.getElementById("no-prod").value;var li=parseInt(document.getElementById("no-litres").value,10)||0;var ad=(document.getElementById("no-addr").value||"").trim()||"Corentyne (Region 6)";if(li<500){toast("Enter at least 500 L");return;}var nid="KI-"+(seq++);orders.unshift({id:nid,customer:cu,prod:pr,litres:li,status:"pending",driver:null,addr:ad,today:true,paid:false,eta:null,proof:null});logEvent(nid+" created by office for "+cu);state.ownerTab="dispatch";closeSheet();renderOwner();toast("Order "+nid+" created");}
   else if(act==="open-receipt")openReceipt(el.dataset.id);
   else if(act==="rate"){receiptRating=parseInt(el.dataset.n,10)||0;openReceipt(receiptId);}
   else if(act==="submit-rating"){if(receiptId){var rr=orders.find(function(x){return x.id===receiptId;});if(rr){rr.rating=receiptRating;logEvent("Customer rated "+rr.id+" "+receiptRating+"★");}closeSheet();renderCustomer();toast("Thanks for your feedback");}}
   else if(act==="close-sheet")closeSheet();
   else if(act==="clear-sig"){var cv=document.getElementById("sig");if(cv){cv.getContext("2d").clearRect(0,0,cv.width,cv.height);var ph=document.getElementById("sigph");if(ph)ph.style.display="grid";if(sheetState)sheetState.hasSig=false;}}
   else if(act==="add-photo"){if(sheetState)sheetState.photo=true;document.getElementById("photo-slot").innerHTML='<div class="photo-ok">'+ic("check")+'<span>Photo captured</span><span class="muted sm" style="margin-left:auto;font-weight:500">meter_'+(sheetState?sheetState.id:'')+'.jpg</span></div>';}
-  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo};logEvent(o3.id+" delivered — proof saved ("+fmt(o3.deliveredLitres)+" L)");}closeSheet();renderDriver();toast("Delivery confirmed — proof saved");}
+  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var rcvEl=document.getElementById("rcv");var dnEl=document.getElementById("dnote");var wtEl=document.getElementById("wtest");var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.slip=SLIP++;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo,receiver:(rcvEl&&rcvEl.value.trim())||"",note:(dnEl&&dnEl.value)||"",waterTest:wtEl?wtEl.checked:false};logEvent(o3.id+" delivered — ticket #"+o3.slip+" ("+fmt(o3.deliveredLitres)+" L)");}closeSheet();renderDriver();toast("Ticket #"+(o3?o3.slip:"")+" generated — proof saved");}
   else if(act==="cprod"){cDraft.prod=el.dataset.prod;renderCustomer();}
   else if(act==="place-order"){var q=document.getElementById("litres");var l2=q?parseInt(q.value,10):cDraft.litres;if(!l2||l2<500){toast("Enter at least 500 L");return;}cDraft.litres=l2;var sel=document.getElementById("csite");if(sel)cDraft.site=parseInt(sel.value,10)||0;var site=CUST_SITES[cDraft.site]||CUST_SITES[0];var id="KI-"+(seq++);orders.unshift({id:id,customer:CUSTOMER_ME,prod:cDraft.prod,litres:l2,status:"pending",driver:null,addr:site.name+" ("+site.region+")",today:true,paid:false,eta:(cDraft.when==="scheduled"?"Scheduled":null),proof:null});logEvent(id+" placed by "+CUSTOMER_ME+" ("+PSHORT[cDraft.prod]+" "+fmt(l2)+" L)"+(cDraft.recurring?" · recurring":""));state.custTab="orders";renderCustomer();toast("Order "+id+" placed — sent to Kris Industries");}
   else if(act==="mark-paid"){var o4=orders.find(function(x){return x.id===el.dataset.id;});if(o4){o4.paid=true;logEvent("Payment recorded — "+o4.id+" ("+gyd(value(o4))+")");renderOwner();toast("Invoice "+o4.id+" marked paid");}}
