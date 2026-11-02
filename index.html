@@ -408,7 +408,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v0.6</span>
+      <span class="v">v0.7</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -677,7 +677,7 @@ function panelOverview(){
   var today=orders.filter(function(o){return o.today;}).length;
   var stats=
     '<div class="stat"><div class="l">Orders today</div><div class="v">'+today+'</div><div class="d">'+c.pending+' awaiting dispatch</div></div>'+
-    '<div class="stat"><div class="l">In transit</div><div class="v">'+c.transit+'</div><div class="d">road & river</div></div>'+
+    '<div class="stat"><div class="l">In transit</div><div class="v">'+c.transit+'</div><div class="d">Corentyne runs</div></div>'+
     '<div class="stat"><div class="l">Litres delivered</div><div class="v">'+fmt(litresToday)+' <small>L</small></div><div class="d">today, with proof</div></div>'+
     '<div class="stat'+(outstanding>3000000?' warn':'')+'"><div class="l">Outstanding</div><div class="v">'+fmt(outstanding)+' <small>GYD</small></div><div class="d">'+c.unpaid+' unpaid invoices</div></div>';
   var active=orders.find(function(o){return o.status==="in_transit";});
@@ -686,6 +686,8 @@ function panelOverview(){
   if(stock.lsd<40)att.push('<div class="r crit">'+ic("alert")+'<span>Low Sulphur Diesel tank at '+stock.lsd+'% — reorder</span><span class="tag">Stock</span></div>');
   if(c.pending)att.push('<div class="r warn">'+ic("truck")+'<span>'+c.pending+' order(s) need a driver assigned</span><span class="tag">Dispatch</span></div>');
   if(c.unpaid)att.push('<div class="r">'+ic("cash")+'<span>'+c.unpaid+' delivered order(s) unpaid — '+gyd(outstanding)+'</span><span class="tag">Billing</span></div>');
+  var appRev=applications.filter(function(a){return a.status==="review";}).length;
+  if(appRev)att.push('<div class="r">'+ic("file")+'<span>'+appRev+' credit application(s) awaiting legal review</span><span class="tag">Applications</span></div>');
   return '<div class="panel-h"><h2>Overview</h2><span class="meta">Mon 26 Oct · Corriverton depot</span></div>'+
     '<div class="block"><div class="stats">'+stats+'</div></div>'+
     '<div class="block" style="overflow:hidden"><div class="bh"><h3>'+ic("pin")+'Live delivery</h3><span class="st" data-s="in_transit"><span class="d"></span>Corentyne corridor</span></div>'+routeMap()+tripFoot+'</div>'+
@@ -807,20 +809,30 @@ function panelReports(){
     '</div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("drop")+'Volume by product</h3></div><div class="bd"><div class="bars">'+volBars+'</div></div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("cash")+'Revenue by product</h3></div><div class="bd"><div class="bars">'+revBars+'</div></div></div>'+
-    '<div class="block"><div class="bh"><h3>'+ic("users")+'Top customers by volume</h3></div><div class="bd"><div class="bars">'+custBars+'</div></div></div>';
+    '<div class="block"><div class="bh"><h3>'+ic("users")+'Top customers by volume</h3></div><div class="bd"><div class="bars">'+custBars+'</div></div></div>'+
+    '<div style="display:flex;gap:9px"><button class="btn ghost" data-act="export" data-fmt="Excel" style="flex:1">'+ic("file")+'Weekly report (Excel)</button><button class="btn ghost" data-act="export" data-fmt="PDF" style="flex:1">'+ic("file")+'Weekly report (PDF)</button></div>';
 }
 function panelSettings(){
-  var team=[["You","Owner · Admin"],["Office desk","Dispatch"],["Rohan Persaud","Driver"],["Devi Singh","Driver"],["Mark Austin","Driver"]];
+  var team=[["You","Owner · Admin"],["Office desk","Dispatch"],["Legal / contracts","Legal"],["Rohan Persaud","Driver · GAH 1625"],["Devi Singh","Driver · GAD 891"],["Mark Austin","Driver · GAE 8742"]];
   var rows=team.map(function(t){return '<tr><td><span class="cust">'+esc(t[0])+'</span></td><td>'+esc(t[1])+'</td></tr>';}).join("");
   return '<div class="panel-h"><h2>Settings</h2><span class="meta">account & team</span></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("user")+'Company</h3></div><div class="bd">'+
       '<div class="kv"><span class="k">Name</span><span class="vv">Kris Industries</span></div>'+
+      '<div class="kv"><span class="k">Address</span><span class="vv" style="max-width:60%">Line Path, Corriverton, Berbice</span></div>'+
+      '<div class="kv"><span class="k">Phone</span><span class="vv">602-6974</span></div>'+
+      '<div class="kv"><span class="k">Email</span><span class="vv">kbalram40@gmail.com</span></div>'+
       '<div class="kv"><span class="k">GEA licence</span><span class="vv">Import & Wholesale</span></div>'+
-      '<div class="kv"><span class="k">Depot</span><span class="vv">Corriverton, Berbice (Region 6)</span></div>'+
+      '<div class="kv"><span class="k">Depot</span><span class="vv">Corriverton (Region 6)</span></div>'+
       '<div class="kv"><span class="k">Products</span><span class="vv">ULSD · LSD · Gasoline</span></div>'+
       '<div class="kv"><span class="k">Currency</span><span class="vv">GYD</span></div>'+
     '</div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("users")+'Team & access</h3><span class="tag">'+team.length+' users</span></div><div class="bd flush"><div class="tw"><table><thead><tr><th>User</th><th>Role</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("user")+'Access control</h3></div><div class="bd">'+
+      '<div class="kv"><span class="k">Finance & salaries</span><span class="vv">Owner / Admin only</span></div>'+
+      '<div class="kv"><span class="k">Credit applications</span><span class="vv">Admin · Legal</span></div>'+
+      '<div class="kv"><span class="k">Dispatch & orders</span><span class="vv">Admin · Office</span></div>'+
+      '<div class="kv"><span class="k">Drivers</span><span class="vv">Own jobs only</span></div>'+
+    '</div></div>'+
     '<button class="btn ghost" data-act="logout" data-role="owner">Sign out</button>';
 }
 function panelApplications(){
