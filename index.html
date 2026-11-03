@@ -408,7 +408,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v0.7</span>
+      <span class="v">v0.8</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -940,7 +940,7 @@ function driverHistory(){
   var done=orders.filter(function(o){return o.driver===DRIVER_ME&&o.status==="delivered";});
   if(!done.length)return '<div class="empty">No completed deliveries yet.</div>';
   return '<div class="group-lbl">Completed deliveries</div>'+done.map(function(o){
-    return '<div class="job done"><div class="jt"><div><div class="cust">'+esc(o.customer)+'</div><div class="muted sm" style="margin-top:3px">'+PSHORT[o.prod]+' · '+fmt(o.deliveredLitres||o.litres)+' L · '+gyd(value(o))+'</div></div>'+stChip("delivered")+'</div><div class="proof">'+ic("check")+'<span>Proof '+esc(o.proof?o.proof.time:"")+(o.proof&&o.proof.sig?" · signature":"")+(o.proof&&o.proof.photo?" · photo":"")+'</span></div></div>';
+    return '<div class="job done"><div class="jt"><div><div class="stop">'+(o.slip?("TICKET #"+o.slip):"DELIVERED")+'</div><div class="cust">'+esc(o.customer)+'</div><div class="muted sm" style="margin-top:3px">'+PSHORT[o.prod]+' · '+fmt(o.deliveredLitres||o.litres)+' L · '+gyd(value(o))+'</div></div>'+stChip("delivered")+'</div><div class="proof">'+ic("check")+'<span>Proof '+esc(o.proof?o.proof.time:"")+(o.proof&&o.proof.sig?" · signature":"")+(o.proof&&o.proof.photo?" · photo":"")+'</span></div></div>';
   }).join("");
 }
 function driverChat(){
@@ -1264,7 +1264,7 @@ document.addEventListener("click",function(e){
   else if(act==="close-sheet")closeSheet();
   else if(act==="clear-sig"){var cv=document.getElementById("sig");if(cv){cv.getContext("2d").clearRect(0,0,cv.width,cv.height);var ph=document.getElementById("sigph");if(ph)ph.style.display="grid";if(sheetState)sheetState.hasSig=false;}}
   else if(act==="add-photo"){if(sheetState)sheetState.photo=true;document.getElementById("photo-slot").innerHTML='<div class="photo-ok">'+ic("check")+'<span>Photo captured</span><span class="muted sm" style="margin-left:auto;font-weight:500">meter_'+(sheetState?sheetState.id:'')+'.jpg</span></div>';}
-  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var rcvEl=document.getElementById("rcv");var dnEl=document.getElementById("dnote");var wtEl=document.getElementById("wtest");var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.slip=SLIP++;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo,receiver:(rcvEl&&rcvEl.value.trim())||"",note:(dnEl&&dnEl.value)||"",waterTest:wtEl?wtEl.checked:false};logEvent(o3.id+" delivered — ticket #"+o3.slip+" ("+fmt(o3.deliveredLitres)+" L)");}closeSheet();renderDriver();toast("Ticket #"+(o3?o3.slip:"")+" generated — proof saved");}
+  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var rcvEl=document.getElementById("rcv");var dnEl=document.getElementById("dnote");var wtEl=document.getElementById("wtest");var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.slip=SLIP++;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo,receiver:(rcvEl&&rcvEl.value.trim())||"",note:(dnEl&&dnEl.value)||"",waterTest:wtEl?wtEl.checked:false};var tk=TRUCKS.find(function(x){return x.driver===o3.driver;});if(tk&&tk[o3.prod]!=null)tk[o3.prod]=Math.max(0,tk[o3.prod]-(o3.deliveredLitres||0));logEvent(o3.id+" delivered — ticket #"+o3.slip+" ("+fmt(o3.deliveredLitres)+" L)");}closeSheet();renderDriver();toast("Ticket #"+(o3?o3.slip:"")+" generated — proof saved");}
   else if(act==="cprod"){cDraft.prod=el.dataset.prod;renderCustomer();}
   else if(act==="place-order"){var q=document.getElementById("litres");var l2=q?parseInt(q.value,10):cDraft.litres;if(!l2||l2<500){toast("Enter at least 500 L");return;}cDraft.litres=l2;var sel=document.getElementById("csite");if(sel)cDraft.site=parseInt(sel.value,10)||0;var site=CUST_SITES[cDraft.site]||CUST_SITES[0];var id="KI-"+(seq++);orders.unshift({id:id,customer:CUSTOMER_ME,prod:cDraft.prod,litres:l2,status:"pending",driver:null,addr:site.name+" ("+site.region+")",today:true,paid:false,eta:(cDraft.when==="scheduled"?"Scheduled":null),proof:null});logEvent(id+" placed by "+CUSTOMER_ME+" ("+PSHORT[cDraft.prod]+" "+fmt(l2)+" L)"+(cDraft.recurring?" · recurring":""));state.custTab="orders";renderCustomer();toast("Order "+id+" placed — sent to Kris Industries");}
   else if(act==="mark-paid"){var o4=orders.find(function(x){return x.id===el.dataset.id;});if(o4){o4.paid=true;logEvent("Payment recorded — "+o4.id+" ("+gyd(value(o4))+")");renderOwner();toast("Invoice "+o4.id+" marked paid");}}
