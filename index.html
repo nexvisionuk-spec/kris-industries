@@ -5,6 +5,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 /* Flat utilitarian ops tool: sidebar + content shell for Owner; phone frames for Driver/Customer. Borders not shadows, no gradients. */
 :root{
@@ -202,6 +204,24 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .mapscale i{display:block;width:44px;height:5px;border:1px solid var(--map-label);border-top:0}
 .mapbadge{position:absolute;top:10px;left:10px;background:color-mix(in srgb,var(--surface) 86%,transparent);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 9px;font-size:11px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;line-height:1}
 .mapbadge .ic{width:13px;height:13px;color:var(--map-route)}
+/* real Leaflet map (live demo loads real Corentyne tiles) */
+.lmap{width:100%;height:360px;background:var(--map-land);z-index:0}
+@media(max-width:560px){.lmap{height:300px}}
+.leaflet-container{font-family:var(--font);background:var(--map-land)}
+.leaflet-container a{color:var(--muted)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 82%,transparent)!important;color:var(--faint)!important;font-size:9px;padding:1px 6px}
+.leaflet-control-attribution a{color:var(--muted)!important}
+.leaflet-control-scale-line{background:color-mix(in srgb,var(--surface) 72%,transparent);color:var(--map-label);border-color:var(--map-label);box-shadow:none}
+.lm-depot{width:15px;height:15px;background:var(--map-route);border:2px solid #fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.lm-pin{filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.lm-puck{position:relative;width:34px;height:34px}
+.lm-pulse{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--map-route);opacity:.3;animation:lmpulse 2.1s ease-out infinite;pointer-events:none}
+.lm-disc{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--map-route);border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5);display:grid;place-items:center;cursor:pointer}
+.lm-disc svg{width:15px;height:15px}
+@keyframes lmpulse{0%{transform:scale(1);opacity:.35}70%{transform:scale(2.3);opacity:0}100%{transform:scale(2.3);opacity:0}}
+@media(prefers-reduced-motion:reduce){.lm-pulse{animation:none;opacity:.2}}
+.leaflet-tooltip.lm-tt{background:color-mix(in srgb,var(--surface) 92%,transparent);color:var(--ink);border:1px solid var(--line);box-shadow:none;font-weight:600;font-size:11px;padding:2px 7px;white-space:nowrap}
+.leaflet-tooltip.lm-tt:before{display:none}
 .trip-foot{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding:11px 14px;border-top:1px solid var(--line)}
 .trip-foot .ic{color:var(--muted)}
 
@@ -478,7 +498,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.0</span>
+      <span class="v">v1.1</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -775,45 +795,11 @@ function panelOverview(){
 }
 function routeMap(){
   var trip=orders.find(function(x){return x.status==="in_transit";});var tid=trip?trip.id:"KI-1042";
-  return '<div class="mapwrap"><svg class="routemap" viewBox="0 0 800 320" role="img" aria-label="Delivery route along the Corentyne Highway, East Berbice"><g id="mv">'+
-    /* water: Atlantic coast (top) + Corentyne River (right) */
-    '<path class="water" d="M0,0 L800,0 L800,44 Q600,62 380,52 Q190,44 0,62 Z"/>'+
-    '<path class="water" d="M800,44 Q726,58 712,130 Q706,235 742,320 L800,320 Z"/>'+
-    /* cane fields inland */
-    '<ellipse class="green" cx="300" cy="274" rx="165" ry="56"/>'+
-    '<ellipse class="green" cx="595" cy="288" rx="150" ry="46"/>'+
-    /* village blocks (Rose Hall & Corriverton) */
-    '<g class="bld"><rect x="210" y="156" width="30" height="20"/><rect x="246" y="156" width="30" height="20"/><rect x="210" y="180" width="30" height="20"/><rect x="246" y="180" width="30" height="20"/>'+
-    '<rect x="520" y="156" width="32" height="20"/><rect x="558" y="156" width="32" height="20"/><rect x="520" y="180" width="32" height="20"/><rect x="558" y="180" width="32" height="20"/></g>'+
-    /* feeder roads off the highway */
-    '<path class="rd2" stroke-width="2.5" d="M120,122 L132,300"/><path class="rd2" stroke-width="2.5" d="M250,122 L262,300"/><path class="rd2" stroke-width="2.5" d="M400,122 L414,300"/><path class="rd2" stroke-width="2.5" d="M560,122 L574,300"/>'+
-    '<path class="rd2" stroke-width="1.5" d="M60,152 L688,150"/><path class="rd2" stroke-width="1.5" d="M80,210 L700,206"/>'+
-    /* Corentyne Highway (main road) — the delivery runs along it, bending toward Skeldon */
-    '<path class="rd2" stroke-width="12" opacity="0.5" d="M30,122 L636,122 Q664,122 678,100 L694,82"/>'+
-    '<path class="rd" stroke-width="7.5" d="M30,122 L636,122 Q664,122 678,100 L694,82"/>'+
-    /* route travelled (solid) + remaining (dashed) along the highway */
-    '<path class="rte" stroke-width="4.5" d="M560,122 L400,122"/>'+
-    '<path class="rte" stroke-width="4.5" stroke-dasharray="1 8" stroke-opacity="0.6" d="M400,122 L250,122"/>'+
-    /* labels */
-    '<text class="lbl-w" x="380" y="28" text-anchor="middle">ATLANTIC OCEAN</text>'+
-    '<text class="lbl-w" x="768" y="206" text-anchor="middle" transform="rotate(84 768 206)">CORENTYNE R.</text>'+
-    '<text class="lbl-sm" x="40" y="112">Corentyne Highway</text>'+
-    '<text class="lbl-sm" x="95" y="150">New Amsterdam</text>'+
-    '<text class="lbl-sm" x="400" y="150">Port Mourant</text>'+
-    '<text class="lbl-sm" x="662" y="74">Skeldon</text>'+
-    '<text class="lbl-sm" x="560" y="168">Corriverton</text>'+
-    '<text class="lbl-sm" x="250" y="168">Rose Hall</text>'+
-    /* depot marker — Corriverton */
-    '<g transform="translate(560,122)"><rect class="mk-r" x="-8" y="-8" width="16" height="16" rx="4" stroke="#fff" stroke-width="2"/></g><text class="lbl" x="560" y="106" text-anchor="middle">Depot</text>'+
-    /* destination pin — A.C.S. at Rose Hall */
-    '<g transform="translate(250,122)"><path class="mk-d" d="M0,0 C-9,-14 -9,-21 0,-25 C9,-21 9,-14 0,0 Z" stroke="#fff" stroke-width="1.5"/><circle cx="0" cy="-16" r="3" fill="#fff"/></g><text class="lbl" x="250" y="106" text-anchor="middle">A.C.S.</text>'+
-    /* vehicle marker — navigation puck heading west toward A.C.S. (tap for trip details) */
-    '<g transform="translate(400,122)" data-act="open-trip" data-id="'+tid+'" style="cursor:pointer"><circle r="26" fill="transparent"/><circle class="veh-pulse" r="15"/><circle class="veh-disc" r="14"/><g transform="rotate(-90)"><path class="veh-arrow" d="M0,-7.5 L6.5,7 L0,3.3 L-6.5,7 Z"/></g></g>'+
-  '</g></svg>'+
-  '<div class="mapbadge">'+ic("tanker")+'Live · '+tid+'</div>'+
-  '<div class="mapctrl"><button type="button" data-act="map-zoom" data-dir="in" aria-label="Zoom in">+</button><button type="button" data-act="map-zoom" data-dir="out" aria-label="Zoom out">−</button><button type="button" data-act="map-zoom" data-dir="reset" aria-label="Recenter">'+ic("pin")+'</button></div>'+
-  '<div class="mapscale"><i></i>2 km</div>'+
-  '<div class="maphint">Scroll or pinch to zoom · drag to pan</div></div>';
+  return '<div class="mapwrap">'+
+    '<div id="lmap" class="lmap" data-tid="'+tid+'" role="img" aria-label="Live delivery on the Corentyne corridor, East Berbice, Guyana"></div>'+
+    '<div class="mapbadge">'+ic("tanker")+'Live · '+tid+'</div>'+
+    '<div class="mapctrl"><button type="button" data-act="map-zoom" data-dir="in" aria-label="Zoom in">+</button><button type="button" data-act="map-zoom" data-dir="out" aria-label="Zoom out">−</button><button type="button" data-act="map-zoom" data-dir="reset" aria-label="Recenter">'+ic("pin")+'</button></div>'+
+    '<div class="maphint">Pinch to zoom · drag to pan</div></div>';
 }
 function tripCard(o){
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
@@ -1210,25 +1196,35 @@ function mapToSvg(cx,cy){var r=mapS.svg.getBoundingClientRect();return {x:(cx-r.
 function mapApply(){mapS.g.setAttribute("transform","translate("+mapS.tx.toFixed(2)+" "+mapS.ty.toFixed(2)+") scale("+mapS.k.toFixed(4)+")");}
 function mapClamp(){var k=mapS.k;if(mapS.tx>0)mapS.tx=0;if(mapS.ty>0)mapS.ty=0;var mnx=800*(1-k),mny=320*(1-k);if(mapS.tx<mnx)mapS.tx=mnx;if(mapS.ty<mny)mapS.ty=mny;}
 function mapZoomAt(x,y,f){if(!mapS)return;var k0=mapS.k,k=Math.min(6,Math.max(1,k0*f));mapS.tx=x-(x-mapS.tx)*(k/k0);mapS.ty=y-(y-mapS.ty)*(k/k0);mapS.k=k;mapClamp();mapApply();}
+function mapTileType(){var t=document.documentElement.getAttribute("data-theme");var dark=t==="dark"||(!t&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);return dark?"dark_all":"light_all";}
+function setMapTiles(){if(window.LMAP&&window._mapTiles){try{window._mapTiles.setUrl("https://{s}.basemaps.cartocdn.com/"+mapTileType()+"/{z}/{x}/{y}{r}.png");}catch(e){}}}
 function initMap(){
-  var svg=document.querySelector(".routemap");var g=svg?svg.querySelector("#mv"):null;
-  if(!svg||!g){mapS=null;return;}
-  mapS={svg:svg,g:g,k:1,tx:0,ty:0,drag:null,pinch:null};mapApply();
-  svg.addEventListener("wheel",function(e){e.preventDefault();var p=mapToSvg(e.clientX,e.clientY);mapZoomAt(p.x,p.y,e.deltaY<0?1.15:0.87);},{passive:false});
-  svg.addEventListener("pointerdown",function(e){if(e.pointerType==="touch")return;mapS.drag=mapToSvg(e.clientX,e.clientY);svg.classList.add("grabbing");});
-  svg.addEventListener("touchstart",function(e){
-    if(e.touches.length===1){mapS.drag=mapToSvg(e.touches[0].clientX,e.touches[0].clientY);mapS.pinch=null;}
-    else if(e.touches.length>=2){var a=mapToSvg(e.touches[0].clientX,e.touches[0].clientY),b=mapToSvg(e.touches[1].clientX,e.touches[1].clientY);mapS.pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,k0:mapS.k,tx0:mapS.tx,ty0:mapS.ty,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}};mapS.drag=null;}
-  },{passive:false});
-  svg.addEventListener("touchmove",function(e){e.preventDefault();
-    if(mapS.pinch&&e.touches.length>=2){var a=mapToSvg(e.touches[0].clientX,e.touches[0].clientY),b=mapToSvg(e.touches[1].clientX,e.touches[1].clientY);var nd=Math.hypot(a.x-b.x,a.y-b.y);var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};var k=Math.min(6,Math.max(1,mapS.pinch.k0*(nd/mapS.pinch.d)));var pl={x:(mapS.pinch.mid.x-mapS.pinch.tx0)/mapS.pinch.k0,y:(mapS.pinch.mid.y-mapS.pinch.ty0)/mapS.pinch.k0};mapS.k=k;mapS.tx=mid.x-k*pl.x;mapS.ty=mid.y-k*pl.y;mapClamp();mapApply();}
-    else if(mapS.drag&&e.touches.length===1){var p=mapToSvg(e.touches[0].clientX,e.touches[0].clientY);mapS.tx+=p.x-mapS.drag.x;mapS.ty+=p.y-mapS.drag.y;mapS.drag=p;mapClamp();mapApply();}
-  },{passive:false});
-  svg.addEventListener("touchend",function(e){if(e.touches.length===0){mapS.drag=null;mapS.pinch=null;}else if(e.touches.length===1){mapS.pinch=null;mapS.drag=mapToSvg(e.touches[0].clientX,e.touches[0].clientY);}});
-  if(!mapBound){mapBound=true;
-    window.addEventListener("pointermove",function(e){if(mapS&&mapS.drag&&e.pointerType!=="touch"){var p=mapToSvg(e.clientX,e.clientY);mapS.tx+=p.x-mapS.drag.x;mapS.ty+=p.y-mapS.drag.y;mapS.drag=p;mapClamp();mapApply();}});
-    window.addEventListener("pointerup",function(){if(mapS){mapS.drag=null;if(mapS.svg)mapS.svg.classList.remove("grabbing");}});
-  }
+  if(typeof L==="undefined")return;
+  var el=document.getElementById("lmap");if(!el)return;
+  var tid=el.getAttribute("data-tid")||"KI-1042";
+  if(window.LMAP){try{window.LMAP.remove();}catch(e){}window.LMAP=null;window._mapTiles=null;}
+  /* real Corentyne corridor, East Berbice (Region 6), Guyana */
+  var DEPOT=[5.8872,-57.1497],      /* Corriverton depot */
+      DEST=[6.2700,-57.3700],       /* A.C.S. Guyana — Rose Hall */
+      TRUCK=[6.2420,-57.3610];      /* en route near Port Mourant */
+  var done=[DEPOT,[6.0000,-57.2150],[6.1200,-57.2850],[6.2167,-57.3500],TRUCK];
+  var left=[TRUCK,DEST];
+  var bounds=L.latLngBounds([DEPOT,DEST]);window.LMAPBOUNDS=bounds;
+  var map=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:true,dragging:true,minZoom:9,maxZoom:16});
+  window.LMAP=map;
+  window._mapTiles=L.tileLayer("https://{s}.basemaps.cartocdn.com/"+mapTileType()+"/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  map.fitBounds(bounds,{padding:[30,30]});
+  var rt=getComputedStyle(document.documentElement).getPropertyValue("--map-route").trim()||"#2f74d0";
+  L.polyline(left,{color:rt,weight:4,opacity:.5,dashArray:"2 9",lineCap:"round"}).addTo(map);
+  L.polyline(done,{color:rt,weight:4.5,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(map);
+  L.control.scale({imperial:false,maxWidth:90,position:"bottomleft"}).addTo(map);
+  var depotIcon=L.divIcon({className:"",html:'<div class="lm-depot"></div>',iconSize:[15,15],iconAnchor:[7,7]});
+  var destIcon=L.divIcon({className:"lm-pin",html:'<svg width="22" height="26" viewBox="0 0 22 26"><path style="fill:var(--ok);stroke:#fff;stroke-width:1.6" d="M11 25 C3 15 2 11 2 9 a9 9 0 0 1 18 0 c0 2 -1 6 -9 16 Z"/><circle cx="11" cy="9" r="3.2" fill="#fff"/></svg>',iconSize:[22,26],iconAnchor:[11,25]});
+  var truckIcon=L.divIcon({className:"",html:'<div class="lm-puck"><div class="lm-pulse"></div><div class="lm-disc"><svg viewBox="0 0 24 24" style="transform:rotate(-40deg)"><path fill="#fff" d="M12 3 L18.5 18 L12 14.5 L5.5 18 Z"/></svg></div></div>',iconSize:[34,34],iconAnchor:[17,17]});
+  L.marker(DEPOT,{icon:depotIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("Depot",{permanent:true,direction:"top",offset:[0,-7],className:"lm-tt"});
+  L.marker(DEST,{icon:destIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("A.C.S. Guyana",{permanent:true,direction:"top",offset:[0,-24],className:"lm-tt"});
+  L.marker(TRUCK,{icon:truckIcon,zIndexOffset:1000,keyboard:false}).addTo(map).on("click",function(){openTrip(tid);});
+  setTimeout(function(){try{map.invalidateSize();map.fitBounds(bounds,{padding:[30,30]});}catch(e){}},60);
 }
 
 /* ---------- live trip detail sheet ---------- */
@@ -1527,7 +1523,7 @@ document.addEventListener("click",function(e){
   else if(act==="agent-decline")toast("With the AI, there's no need to decline — every call gets answered.");
   else if(act==="otab"){state.ownerTab=el.dataset.tab;renderOwner();}
   else if(act==="notif")toggleNotif();
-  else if(act==="theme"){var cur=document.documentElement.getAttribute("data-theme");var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("kfo-theme",next);}catch(e2){}}
+  else if(act==="theme"){var cur=document.documentElement.getAttribute("data-theme");var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("kfo-theme",next);}catch(e2){}if(window.setMapTiles)setMapTiles();}
   else if(act==="dismiss-intro"){var i=document.getElementById("intro");if(i)i.hidden=true;}
   else if(act==="dispatch"){var sel=document.querySelector('[data-assign="'+el.dataset.id+'"]');var o=orders.find(function(x){return x.id===el.dataset.id;});if(o&&sel){o.driver=sel.value;o.status="scheduled";o.eta="Scheduled";logEvent(o.id+" assigned to "+driverName(sel.value));renderOwner();toast("Order "+o.id+" assigned to "+driverName(sel.value));}}
   else if(act==="start-job"){var o2=orders.find(function(x){return x.id===el.dataset.id;});if(o2){o2.status="in_transit";o2.eta="~18 min";o2.etaMin=18;o2.progress=14;o2.distKm=5.4;logEvent(o2.id+" en route to "+o2.customer);renderDriver();toast("Trip started — customer notified");}}
@@ -1576,7 +1572,7 @@ document.addEventListener("click",function(e){
   else if(act==="add-site")openAddSite();
   else if(act==="save-site"){var nm=(document.getElementById("as-name").value||"").trim();if(!nm){toast("Enter a site name");return;}var rg=document.getElementById("as-region").value;CUST_SITES.push({name:nm,region:rg});closeSheet();renderCustomer();toast("Site added — "+nm);}
   else if(act==="remove-site"){var si=parseInt(el.dataset.i,10);if(si>-1&&CUST_SITES[si]&&!CUST_SITES[si].primary){var rn=CUST_SITES[si].name;CUST_SITES.splice(si,1);if(cDraft.site>=CUST_SITES.length)cDraft.site=0;renderCustomer();toast("Site removed — "+rn);}}
-  else if(act==="map-zoom"){var dir=el.dataset.dir;if(dir==="reset"){if(mapS){mapS.k=1;mapS.tx=0;mapS.ty=0;mapApply();}}else mapZoomAt(400,160,dir==="in"?1.4:0.714);}
+  else if(act==="map-zoom"){var dir=el.dataset.dir;if(window.LMAP){if(dir==="in")LMAP.zoomIn();else if(dir==="out")LMAP.zoomOut();else if(window.LMAPBOUNDS)LMAP.fitBounds(window.LMAPBOUNDS,{padding:[30,30]});}}
   else if(act==="pay-all"){var n=0;orders.forEach(function(o){if(o.customer===CUSTOMER_ME&&o.status==="delivered"&&!o.paid){o.paid=true;n++;}});if(n){logEvent(n+" invoice(s) paid via MMG by "+CUSTOMER_ME);renderCustomer();toast(n+" invoice(s) paid");}}
 },false);
 
