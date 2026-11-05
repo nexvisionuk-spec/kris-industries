@@ -205,9 +205,12 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .mapbadge{position:absolute;top:10px;left:10px;background:color-mix(in srgb,var(--surface) 86%,transparent);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 9px;font-size:11px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;line-height:1}
 .mapbadge .ic{width:13px;height:13px;color:var(--map-route)}
 /* real Leaflet map (live demo loads real Corentyne tiles) */
-.lmap{width:100%;height:360px;background:var(--map-land);z-index:0}
+.lmap{width:100%;height:360px;background:#e7ebee;z-index:0}
 @media(max-width:560px){.lmap{height:300px}}
-.leaflet-container{font-family:var(--font);background:var(--map-land)}
+.leaflet-container{font-family:var(--font);background:#e7ebee}
+.leaflet-control-attribution{background:rgba(255,255,255,.82)!important;color:#333!important}
+.leaflet-control-attribution a{color:#0b5fd0!important}
+.leaflet-control-scale-line{background:rgba(255,255,255,.72)!important;color:#222!important;border-color:#777!important}
 .leaflet-container a{color:var(--muted)}
 .leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 82%,transparent)!important;color:var(--faint)!important;font-size:9px;padding:1px 6px}
 .leaflet-control-attribution a{color:var(--muted)!important}
@@ -498,7 +501,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.1</span>
+      <span class="v">v1.2</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -1196,8 +1199,8 @@ function mapToSvg(cx,cy){var r=mapS.svg.getBoundingClientRect();return {x:(cx-r.
 function mapApply(){mapS.g.setAttribute("transform","translate("+mapS.tx.toFixed(2)+" "+mapS.ty.toFixed(2)+") scale("+mapS.k.toFixed(4)+")");}
 function mapClamp(){var k=mapS.k;if(mapS.tx>0)mapS.tx=0;if(mapS.ty>0)mapS.ty=0;var mnx=800*(1-k),mny=320*(1-k);if(mapS.tx<mnx)mapS.tx=mnx;if(mapS.ty<mny)mapS.ty=mny;}
 function mapZoomAt(x,y,f){if(!mapS)return;var k0=mapS.k,k=Math.min(6,Math.max(1,k0*f));mapS.tx=x-(x-mapS.tx)*(k/k0);mapS.ty=y-(y-mapS.ty)*(k/k0);mapS.k=k;mapClamp();mapApply();}
-function mapTileType(){var t=document.documentElement.getAttribute("data-theme");var dark=t==="dark"||(!t&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);return dark?"dark_all":"light_all";}
-function setMapTiles(){if(window.LMAP&&window._mapTiles){try{window._mapTiles.setUrl("https://{s}.basemaps.cartocdn.com/"+mapTileType()+"/{z}/{x}/{y}{r}.png");}catch(e){}}}
+var MAP_TILES="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+function setMapTiles(){}
 function initMap(){
   if(typeof L==="undefined")return;
   var el=document.getElementById("lmap");if(!el)return;
@@ -1212,7 +1215,7 @@ function initMap(){
   var bounds=L.latLngBounds([DEPOT,DEST]);window.LMAPBOUNDS=bounds;
   var map=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:true,dragging:true,minZoom:9,maxZoom:16});
   window.LMAP=map;
-  window._mapTiles=L.tileLayer("https://{s}.basemaps.cartocdn.com/"+mapTileType()+"/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  window._mapTiles=L.tileLayer(MAP_TILES,{subdomains:"abc",maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
   map.fitBounds(bounds,{padding:[30,30]});
   var rt=getComputedStyle(document.documentElement).getPropertyValue("--map-route").trim()||"#2f74d0";
   L.polyline(left,{color:rt,weight:4,opacity:.5,dashArray:"2 9",lineCap:"round"}).addTo(map);
