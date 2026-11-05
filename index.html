@@ -208,9 +208,15 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .lmap{width:100%;height:360px;background:#e7ebee;z-index:0}
 @media(max-width:560px){.lmap{height:300px}}
 .leaflet-container{font-family:var(--font);background:#e7ebee}
+:root[data-theme="dark"] .lmap,:root[data-theme="dark"] .leaflet-container{background:#20242a}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .lmap,:root:not([data-theme="light"]) .leaflet-container{background:#20242a}}
 .leaflet-control-attribution{background:rgba(255,255,255,.82)!important;color:#333!important}
 .leaflet-control-attribution a{color:#0b5fd0!important}
 .leaflet-control-scale-line{background:rgba(255,255,255,.72)!important;color:#222!important;border-color:#777!important}
+:root[data-theme="dark"] .leaflet-control-attribution{background:rgba(22,26,31,.8)!important;color:#9aa3ad!important}
+:root[data-theme="dark"] .leaflet-control-attribution a{color:#7fb0ef!important}
+:root[data-theme="dark"] .leaflet-control-scale-line{background:rgba(22,26,31,.72)!important;color:#cdd3da!important;border-color:#55606c!important}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .leaflet-control-attribution{background:rgba(22,26,31,.8)!important;color:#9aa3ad!important}:root:not([data-theme="light"]) .leaflet-control-scale-line{background:rgba(22,26,31,.72)!important;color:#cdd3da!important;border-color:#55606c!important}}
 .leaflet-container a{color:var(--muted)}
 .leaflet-control-attribution{background:color-mix(in srgb,var(--surface) 82%,transparent)!important;color:var(--faint)!important;font-size:9px;padding:1px 6px}
 .leaflet-control-attribution a{color:var(--muted)!important}
@@ -501,7 +507,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.2</span>
+      <span class="v">v1.3</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -1199,35 +1205,76 @@ function mapToSvg(cx,cy){var r=mapS.svg.getBoundingClientRect();return {x:(cx-r.
 function mapApply(){mapS.g.setAttribute("transform","translate("+mapS.tx.toFixed(2)+" "+mapS.ty.toFixed(2)+") scale("+mapS.k.toFixed(4)+")");}
 function mapClamp(){var k=mapS.k;if(mapS.tx>0)mapS.tx=0;if(mapS.ty>0)mapS.ty=0;var mnx=800*(1-k),mny=320*(1-k);if(mapS.tx<mnx)mapS.tx=mnx;if(mapS.ty<mny)mapS.ty=mny;}
 function mapZoomAt(x,y,f){if(!mapS)return;var k0=mapS.k,k=Math.min(6,Math.max(1,k0*f));mapS.tx=x-(x-mapS.tx)*(k/k0);mapS.ty=y-(y-mapS.ty)*(k/k0);mapS.k=k;mapClamp();mapApply();}
-var MAP_TILES="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-function setMapTiles(){}
+/* tiles follow the app theme — both providers are keyless */
+function mapIsDark(){var t=document.documentElement.getAttribute("data-theme");return t==="dark"||(!t&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}
+function mapTileLayers(dark){
+  if(dark){return [
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,attribution:'Tiles &copy; Esri'}),
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,attribution:''})
+  ];}
+  return [ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}) ];
+}
+function setMapTiles(){
+  if(!window.LMAP)return;
+  if(window._mapTileLayers){window._mapTileLayers.forEach(function(l){try{window.LMAP.removeLayer(l);}catch(e){}});}
+  var layers=mapTileLayers(mapIsDark());
+  layers.forEach(function(l){l.addTo(window.LMAP);});   /* tilePane sits under routes + markers automatically */
+  window._mapTileLayers=layers;
+}
+function mapBearing(a,b){var la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180,dLng=(b[1]-a[1])*Math.PI/180;var y=Math.sin(dLng)*Math.cos(la2);var x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dLng);return (Math.atan2(y,x)*180/Math.PI+360)%360;}
+function mapTripSplit(coords,remainM){
+  var segs=[];for(var i=1;i<coords.length;i++){segs.push(L.latLng(coords[i-1]).distanceTo(L.latLng(coords[i])));}
+  var fromEnd=0;
+  for(var j=coords.length-1;j>0;j--){var d=segs[j-1];
+    if(fromEnd+d>=remainM){var t=(remainM-fromEnd)/d;
+      var truck=[coords[j][0]+(coords[j-1][0]-coords[j][0])*t, coords[j][1]+(coords[j-1][1]-coords[j][1])*t];
+      return {travelled:coords.slice(0,j).concat([truck]), remaining:[truck].concat(coords.slice(j)), truck:truck, bearing:mapBearing(coords[j-1],coords[j])};
+    }
+    fromEnd+=d;
+  }
+  return {travelled:[coords[0]], remaining:coords.slice(), truck:coords[0], bearing:coords.length>1?mapBearing(coords[0],coords[1]):0};
+}
+function drawTrip(coords,tid){
+  if(!window.LMAP)return;
+  if(window._tripLayer){try{window.LMAP.removeLayer(window._tripLayer);}catch(e){}}
+  var grp=L.layerGroup().addTo(window.LMAP);window._tripLayer=grp;
+  var rt=getComputedStyle(document.documentElement).getPropertyValue("--map-route").trim()||"#2f74d0";
+  var s=mapTripSplit(coords,3400);   /* 3.4 km still to run */
+  L.polyline(s.remaining,{color:rt,weight:4,opacity:.5,dashArray:"2 9",lineCap:"round"}).addTo(grp);
+  L.polyline(s.travelled,{color:rt,weight:5,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(grp);
+  var truckIcon=L.divIcon({className:"",html:'<div class="lm-puck"><div class="lm-pulse"></div><div class="lm-disc"><svg viewBox="0 0 24 24" style="transform:rotate('+s.bearing.toFixed(0)+'deg)"><path fill="#fff" d="M12 3 L18.5 18 L12 14.5 L5.5 18 Z"/></svg></div></div>',iconSize:[34,34],iconAnchor:[17,17]});
+  L.marker(s.truck,{icon:truckIcon,zIndexOffset:1000,keyboard:false}).addTo(grp).on("click",function(){openTrip(tid);});
+  window.LMAPBOUNDS=L.latLngBounds(coords);
+  try{window.LMAP.fitBounds(window.LMAPBOUNDS,{padding:[34,34]});}catch(e){}
+}
 function initMap(){
   if(typeof L==="undefined")return;
   var el=document.getElementById("lmap");if(!el)return;
   var tid=el.getAttribute("data-tid")||"KI-1042";
-  if(window.LMAP){try{window.LMAP.remove();}catch(e){}window.LMAP=null;window._mapTiles=null;}
+  if(window.LMAP){try{window.LMAP.remove();}catch(e){}window.LMAP=null;window._mapTileLayers=null;window._tripLayer=null;}
   /* real Corentyne corridor, East Berbice (Region 6), Guyana */
-  var DEPOT=[5.8872,-57.1497],      /* Corriverton depot */
-      DEST=[6.2700,-57.3700],       /* A.C.S. Guyana — Rose Hall */
-      TRUCK=[6.2420,-57.3610];      /* en route near Port Mourant */
-  var done=[DEPOT,[6.0000,-57.2150],[6.1200,-57.2850],[6.2167,-57.3500],TRUCK];
-  var left=[TRUCK,DEST];
-  var bounds=L.latLngBounds([DEPOT,DEST]);window.LMAPBOUNDS=bounds;
-  var map=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:true,dragging:true,minZoom:9,maxZoom:16});
+  var DEPOT=[5.8872,-57.1497],   /* Corriverton depot */
+      DEST=[6.2700,-57.3700];    /* A.C.S. Guyana — Rose Hall */
+  var fallback=[DEPOT,[6.0000,-57.2150],[6.1200,-57.2850],[6.2167,-57.3500],[6.2420,-57.3610],DEST];
+  var map=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:true,dragging:true,minZoom:8,maxZoom:17});
   window.LMAP=map;
-  window._mapTiles=L.tileLayer(MAP_TILES,{subdomains:"abc",maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-  map.fitBounds(bounds,{padding:[30,30]});
-  var rt=getComputedStyle(document.documentElement).getPropertyValue("--map-route").trim()||"#2f74d0";
-  L.polyline(left,{color:rt,weight:4,opacity:.5,dashArray:"2 9",lineCap:"round"}).addTo(map);
-  L.polyline(done,{color:rt,weight:4.5,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(map);
+  setMapTiles();
   L.control.scale({imperial:false,maxWidth:90,position:"bottomleft"}).addTo(map);
   var depotIcon=L.divIcon({className:"",html:'<div class="lm-depot"></div>',iconSize:[15,15],iconAnchor:[7,7]});
   var destIcon=L.divIcon({className:"lm-pin",html:'<svg width="22" height="26" viewBox="0 0 22 26"><path style="fill:var(--ok);stroke:#fff;stroke-width:1.6" d="M11 25 C3 15 2 11 2 9 a9 9 0 0 1 18 0 c0 2 -1 6 -9 16 Z"/><circle cx="11" cy="9" r="3.2" fill="#fff"/></svg>',iconSize:[22,26],iconAnchor:[11,25]});
-  var truckIcon=L.divIcon({className:"",html:'<div class="lm-puck"><div class="lm-pulse"></div><div class="lm-disc"><svg viewBox="0 0 24 24" style="transform:rotate(-40deg)"><path fill="#fff" d="M12 3 L18.5 18 L12 14.5 L5.5 18 Z"/></svg></div></div>',iconSize:[34,34],iconAnchor:[17,17]});
   L.marker(DEPOT,{icon:depotIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("Depot",{permanent:true,direction:"top",offset:[0,-7],className:"lm-tt"});
   L.marker(DEST,{icon:destIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("A.C.S. Guyana",{permanent:true,direction:"top",offset:[0,-24],className:"lm-tt"});
-  L.marker(TRUCK,{icon:truckIcon,zIndexOffset:1000,keyboard:false}).addTo(map).on("click",function(){openTrip(tid);});
-  setTimeout(function(){try{map.invalidateSize();map.fitBounds(bounds,{padding:[30,30]});}catch(e){}},60);
+  drawTrip(fallback,tid);   /* shows instantly; upgraded to real roads below */
+  var ourMap=map;
+  var url="https://router.project-osrm.org/route/v1/driving/"+DEPOT[1]+","+DEPOT[0]+";"+DEST[1]+","+DEST[0]+"?overview=full&geometries=geojson";
+  try{fetch(url).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(window.LMAP!==ourMap)return;
+    if(j&&j.routes&&j.routes[0]&&j.routes[0].geometry){
+      var rc=j.routes[0].geometry.coordinates.map(function(c){return [c[1],c[0]];});
+      if(rc.length>1)drawTrip(rc,tid);
+    }
+  }).catch(function(){});}catch(e){}
+  setTimeout(function(){try{map.invalidateSize();if(window.LMAPBOUNDS)map.fitBounds(window.LMAPBOUNDS,{padding:[34,34]});}catch(e){}},60);
 }
 
 /* ---------- live trip detail sheet ---------- */
