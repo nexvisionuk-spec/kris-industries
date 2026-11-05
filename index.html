@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kris Fuel Ops</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -397,6 +399,74 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .stars .star svg{width:30px;height:30px;fill:var(--line-2)}
 .stars .star.on svg{fill:#f4a51f}
 .rowbtns{display:flex;gap:6px}
+.livepill{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok)}
+.livepill .ld{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:aipulse 1.5s infinite}
+/* ---------- AI call agent ---------- */
+.ai-wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.ai-hero{text-align:center;padding:4px 6px}
+.ai-tagpill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--brand);border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:5px 12px;margin-bottom:10px}
+.ai-tagpill .ic{width:15px;height:15px}
+.ai-hero h2{margin:0 0 7px;font-size:23px;letter-spacing:-.02em}
+.ai-hero p{margin:0 auto;max-width:560px;color:var(--muted);font-size:14px;line-height:1.55}
+.ai-stage{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.ai-top{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.ai-ava{width:36px;height:36px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none}
+.ai-ava .ic{width:20px;height:20px}
+.ai-top .nm{font-weight:650;font-size:14px}
+.ai-top .sub{font-size:12px;color:var(--muted)}
+.ai-live{margin-left:auto;display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12.5px;color:var(--muted);white-space:nowrap}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:aipulse 1.5s infinite}
+@keyframes aipulse{0%{box-shadow:0 0 0 0 rgba(40,167,69,.5)}70%{box-shadow:0 0 0 7px rgba(40,167,69,0)}100%{box-shadow:0 0 0 0 rgba(40,167,69,0)}}
+.ai-incoming{padding:30px 20px 26px;text-align:center}
+.ai-bigava{position:relative;width:88px;height:88px;border-radius:50%;margin:0 auto 18px;background:var(--brand);color:#fff;display:grid;place-items:center}
+.ai-bigava .ic{width:34px;height:34px}
+.ai-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--brand);opacity:.45;animation:airing 1.9s ease-out infinite}
+.ai-ring.r2{animation-delay:.95s}
+@keyframes airing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.9);opacity:0}}
+.ai-callname{font-size:20px;font-weight:650}
+.ai-callsub{font-size:13px;color:var(--muted);margin-top:3px}
+.ai-inclabel{font-size:12.5px;color:var(--faint);margin-top:9px;font-family:var(--mono)}
+.ai-callbtns{display:flex;justify-content:center;gap:46px;margin-top:22px}
+.ai-callbtns>div{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ai-cb{width:60px;height:60px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;color:#fff}
+.ai-cb .ic{width:25px;height:25px}
+.ai-cb.ans{background:var(--ok)}
+.ai-cb.dec{background:var(--crit)}
+.ai-cb.dec .ic{transform:rotate(135deg)}
+.ai-cblabel{font-size:12px;color:var(--muted)}
+.ai-scenarios{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+.ai-chip{border:1px solid var(--line-2);background:var(--surface);color:var(--muted);border-radius:999px;padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.ai-chip[aria-pressed="true"]{border-color:var(--brand);background:var(--surface-3);color:var(--ink);font-weight:600}
+.ai-hint{font-size:12.5px;color:var(--faint);margin-top:14px}
+.ai-convo{padding:16px;display:flex;flex-direction:column;gap:11px;max-height:46vh;overflow:auto}
+.ai-msg{max-width:84%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.5;animation:aifade .25s ease}
+.ai-msg .who{display:block;font-size:10px;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:3px;font-weight:700}
+.ai-msg.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:4px;color:var(--ink)}
+.ai-msg.caller{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.ai-msg.caller .who{opacity:.75}
+@keyframes aifade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.ai-wave{display:inline-flex;gap:2.5px;align-items:center;height:12px;margin-left:5px;vertical-align:middle}
+.ai-wave i{width:3px;height:100%;background:currentColor;border-radius:2px;opacity:.75;animation:aiwave .9s ease-in-out infinite}
+.ai-wave i:nth-child(2){animation-delay:.15s}.ai-wave i:nth-child(3){animation-delay:.3s}.ai-wave i:nth-child(4){animation-delay:.45s}.ai-wave i:nth-child(5){animation-delay:.6s}
+@keyframes aiwave{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+.ai-ctrls{display:flex;gap:9px;align-items:center;padding:12px 14px;border-top:1px solid var(--line);background:var(--surface-2)}
+.ai-endbtn{background:var(--crit);border-color:var(--crit);color:#fff}
+.ai-endbtn .ic{transform:rotate(135deg)}
+.ai-end{padding:28px 22px;text-align:center}
+.ai-check{width:52px;height:52px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:var(--ok-bg);color:var(--ok)}
+.ai-check .ic{width:28px;height:28px;stroke-width:2.2}
+.ai-end h3{margin:0 0 5px;font-size:19px}
+.ai-callmeta{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+.ai-outcome{display:inline-flex;align-items:center;gap:9px;margin:16px auto 0;padding:11px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-weight:600;font-size:14px}
+.ai-outcome .ic{color:var(--brand);width:18px;height:18px}
+.ai-outnote{max-width:460px;margin:12px auto 0;color:var(--muted);font-size:13px;line-height:1.55}
+.ai-endctrls{display:flex;gap:10px;justify-content:center;margin-top:20px}
+.ai-points{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.ai-pt{display:flex;gap:11px;padding:13px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.ai-pt .ic{width:20px;height:20px;color:var(--brand);flex:none;margin-top:1px}
+.ai-pt .h{font-weight:600;font-size:13.5px}
+.ai-pt .d{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+@media(max-width:560px){.ai-points{grid-template-columns:1fr}.ai-hero h2{font-size:20px}.ai-callbtns{gap:34px}}
 </style>
 
 <div class="bar">
@@ -415,6 +485,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
       <button data-act="role" data-role="owner" aria-pressed="true">Owner</button>
       <button data-act="role" data-role="driver" aria-pressed="false">Driver</button>
       <button data-act="role" data-role="customer" aria-pressed="false">Customer</button>
+      <button data-act="role" data-role="agent" aria-pressed="false">AI Agent</button>
     </div>
     <button class="iconbtn notif-btn" data-act="notif" title="Activity" aria-label="Activity">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
@@ -468,7 +539,14 @@ var ICONS={
   file:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
   coins:'<ellipse cx="9" cy="6" rx="6" ry="2.6"/><path d="M3 6v4c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6V6"/><path d="M9 12.6v3.8c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-4"/><ellipse cx="15" cy="12.4" rx="6" ry="2.6"/>',
   star:'<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.9 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>',
-  tanker:'<rect x="2.5" y="8" width="12" height="7" rx="3"/><path d="M14.5 15v-4.5h2.5L20.5 14v1z"/><circle cx="6.5" cy="17" r="1.7"/><circle cx="17.5" cy="17" r="1.7"/><path d="M6 8V6.5M10 8V6.5"/>'
+  tanker:'<rect x="2.5" y="8" width="12" height="7" rx="3"/><path d="M14.5 15v-4.5h2.5L20.5 14v1z"/><circle cx="6.5" cy="17" r="1.7"/><circle cx="17.5" cy="17" r="1.7"/><path d="M6 8V6.5M10 8V6.5"/>',
+  bot:'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1.2"/><circle cx="9" cy="13" r="1.25"/><circle cx="15" cy="13" r="1.25"/><path d="M9.5 16.3h5"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3M9 21h6"/>',
+  soundon:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9.5a4 4 0 0 1 0 5"/><path d="M19 7a7 7 0 0 1 0 10"/>',
+  soundoff:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M22 9.5l-5 5M17 9.5l5 5"/>',
+  skip:'<path d="M5 5l9 7-9 7z"/><path d="M19 5v14"/>',
+  bolt:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
 };
 function ic(n,cls){return '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||'')+'</svg>';}
 
@@ -1236,9 +1314,189 @@ function openReceipt(id){
   '</div></div>';
 }
 
+/* ---------- AI call agent ---------- */
+try{if('speechSynthesis'in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){};}}catch(e){}
+var agentState={scenario:"order",phase:"idle",idx:0,muted:false,committed:false,orderId:null,token:0,timer:null,tick:null,started:null};
+var AGENT_META={
+  order:{chip:"After-hours order",callerName:"Ramesh Persaud",callerSub:"A.C.S. Guyana · account AC-204",callerNum:"+592 623 7781",when:"9:52 PM · after hours"},
+  status:{chip:"Delivery status",callerName:"A.C.S. Guyana",callerSub:"Rose Hall, Corentyne",callerNum:"+592 618 4420",when:"Today · 11:28 AM"},
+  newcust:{chip:"New customer",callerName:"Demerara Haulage",callerSub:"New caller",callerNum:"+592 699 2015",when:"Today · 2:10 PM"}
+};
+function agentScript(key){
+  var m=AGENT_META[key]||AGENT_META.order,L,commit,outcome,outNote,outIcon;
+  if(key==="status"){
+    L=[{s:"ai",t:"Thank you for calling Kris Industries, the twenty-four hour line. This is Ava. How can I help?"},
+       {s:"caller",t:"Hi, I'm calling about our delivery today — can you tell me where the truck is?"},
+       {s:"ai",t:"Certainly. I see order KI-1042 for A.C.S. Guyana — five thousand litres of ULSD. Your truck is on the Corentyne Highway, about twelve minutes away and three point four kilometres from your Rose Hall site, with driver Rohan. Would you like a text when he's five minutes out?"},
+       {s:"caller",t:"Yes please, that would help."},
+       {s:"ai",t:"Done — I'll text this number when he's close. Is there anything else?"},
+       {s:"caller",t:"No, thank you."},
+       {s:"ai",t:"Thank you for choosing Kris Industries. Goodbye."}];
+    commit=function(){logEvent("AI call agent handled a delivery-status call — A.C.S. Guyana (KI-1042)");};
+    outcome="Live delivery ETA shared · arrival alert set";outNote="The caller got an exact answer in seconds — day or night, no waiting for the office to open.";outIcon="pin";
+  } else if(key==="newcust"){
+    L=[{s:"ai",t:"Thank you for calling Kris Industries — fuelling your every growth. This is Ava. How can I help?"},
+       {s:"caller",t:"Hi, we're a new company, Demerara Haulage. We'd like to open a fuel account and get your diesel pricing."},
+       {s:"ai",t:"Welcome! I'd be glad to help you open a business account. Today's indicative price is three hundred and twenty-two Guyana dollars per litre for ULSD, with volume discounts on bulk orders. To set up credit terms I can start your application now — you'll need two forms of I.D., a bank guarantee or a pledged asset, business financials, your business registration, and two references."},
+       {s:"caller",t:"Okay. How do we send those across?"},
+       {s:"ai",t:"I'll text and email you a secure upload link right after this call. Once your documents are in, our team reviews them and sends a credit agreement to e-sign. I've started your file and flagged it for our credit team. Would you like a callback from a person as well?"},
+       {s:"caller",t:"Yes, that would be great."},
+       {s:"ai",t:"Done — a member of our team will call you tomorrow. Thank you for choosing Kris Industries. Goodbye."}];
+    commit=function(){applications.unshift({id:"CR-"+(appSeq++),customer:"Demerara Haulage Ltd",date:"Today",status:"review",docs:0});logEvent("AI call agent opened a credit-line application — Demerara Haulage Ltd (routed to legal file)");};
+    outcome="Credit application started → legal file";outNote="Owner → Applications now shows the new file. The AI gathered the details; a person makes the final call.";outIcon="file";
+  } else {
+    var oid=agentState.orderId||"KI-10xx";
+    L=[{s:"ai",t:"Thank you for calling Kris Industries — fuelling your every growth. You've reached our twenty-four hour ordering line. This is Ava, your automated assistant. How can I help tonight?"},
+       {s:"caller",t:"Evening. This is Ramesh from A.C.S. Guyana. I need to put in a diesel order."},
+       {s:"ai",t:"Of course, Ramesh. I've pulled up your account — A.C.S. Guyana, delivering to your Rose Hall yard in Corentyne. Which product, and how many litres?"},
+       {s:"caller",t:"Five thousand litres of the ultra low sulphur diesel, same as last time."},
+       {s:"ai",t:"Five thousand litres of ULSD to Rose Hall. Shall I put that on your credit account, for delivery tomorrow morning?"},
+       {s:"caller",t:"Yes, on account, tomorrow morning if you can."},
+       {s:"ai",t:"All set. Your credit line has room, so you're approved. I've booked five thousand litres of ULSD for tomorrow between seven and nine A.M. Your order number is "+oid+". You'll get a text the moment the truck is dispatched. Anything else?"},
+       {s:"caller",t:"No, that's everything. Thanks."},
+       {s:"ai",t:"My pleasure. Thank you for choosing Kris Industries. Have a good night."}];
+    commit=function(){orders.unshift({id:oid,customer:"A.C.S. Guyana",prod:"ulsd",litres:5000,status:"pending",driver:null,addr:"Rose Hall, Corentyne (Region 6)",today:false,paid:false,eta:"Tomorrow 07:00–09:00",proof:null});logEvent("AI call agent booked "+oid+" — A.C.S. Guyana, 5,000 L ULSD (after-hours)");};
+    outcome="Order "+oid+" booked — added to Dispatch";outNote="Switch to Owner → Dispatch: the order the AI just took is there, waiting for you to assign a truck.";outIcon="truck";
+  }
+  return {callerName:m.callerName,callerSub:m.callerSub,callerNum:m.callerNum,when:m.when,lines:L,commit:commit,outcome:outcome,outNote:outNote,outIcon:outIcon};
+}
+function agentPickVoice(){
+  try{var vs=window.speechSynthesis.getVoices()||[];
+    return vs.filter(function(v){return /en-GB/i.test(v.lang)&&/female|Sonia|Serena|Kate|Libby|Google UK English Female/i.test(v.name);})[0]
+      || vs.filter(function(v){return /Google UK English Female/i.test(v.name);})[0]
+      || vs.filter(function(v){return /Samantha|Google US English|Jenny|Aria/i.test(v.name);})[0]
+      || vs.filter(function(v){return /^en/i.test(v.lang);})[0] || null;
+  }catch(e){return null;}
+}
+function agentElapsed(){var s=Math.max(0,Math.floor((Date.now()-(agentState.started||Date.now()))/1000));return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2);}
+function agentUpdateTimer(){var e=document.querySelector(".ai-live");if(e)e.innerHTML='<span class="ai-dot"></span>On call · '+agentElapsed();}
+function agentHeroHtml(){
+  return '<div class="ai-hero"><span class="ai-tagpill">'+ic("bot")+'24/7 AI call assistant</span>'+
+    '<h2>Kris Industries never misses a call</h2>'+
+    '<p>When a customer calls — an order at 10 PM, a question about a delivery, a new account — the AI answers on the first ring, handles it in a natural conversation, and logs everything. No voicemail. No missed business.</p></div>';
+}
+function agentPointsHtml(){
+  var pts=[["clock","Answers 24/7","First-ring pickup, even at 10 PM when the office is closed."],
+    ["bolt","Books orders instantly","Takes the order and drops it straight into dispatch."],
+    ["users","Knows every account","Credit limits, delivery sites and order history on hand."],
+    ["shield","Hands off to a human","Routes anything complex to your team, with notes."]];
+  return '<div class="ai-points">'+pts.map(function(p){return '<div class="ai-pt">'+ic(p[0])+'<div><div class="h">'+p[1]+'</div><div class="d">'+p[2]+'</div></div></div>';}).join("")+'</div>';
+}
+function agentIncomingHtml(S){
+  var chips=["order","status","newcust"].map(function(k){return '<button class="ai-chip" data-act="agent-scenario" data-k="'+k+'" aria-pressed="'+(agentState.scenario===k)+'">'+esc(AGENT_META[k].chip)+'</button>';}).join("");
+  return '<div class="ai-incoming">'+
+    '<div class="ai-bigava">'+ic("phone")+'<span class="ai-ring"></span><span class="ai-ring r2"></span></div>'+
+    '<div class="ai-callname">'+esc(S.callerName)+'</div>'+
+    '<div class="ai-callsub">'+esc(S.callerSub)+' · '+esc(S.callerNum)+'</div>'+
+    '<div class="ai-inclabel">Incoming call · '+esc(S.when)+'</div>'+
+    '<div class="ai-callbtns">'+
+      '<div><button class="ai-cb dec" data-act="agent-decline" aria-label="Decline">'+ic("phone")+'</button><div class="ai-cblabel">Decline</div></div>'+
+      '<div><button class="ai-cb ans" data-act="agent-answer" aria-label="Answer with AI">'+ic("phone")+'</button><div class="ai-cblabel">Answer (AI)</div></div>'+
+    '</div>'+
+    '<div class="ai-scenarios">'+chips+'</div>'+
+    '<div class="ai-hint">Pick a call type, then tap <b>Answer</b>. The assistant speaks each reply aloud.</div>'+
+  '</div>';
+}
+function agentConvoHtml(){
+  var S=agentScript(agentState.scenario),L=S.lines,html="",i;
+  for(i=0;i<=agentState.idx&&i<L.length;i++){
+    var ln=L[i],active=(i===agentState.idx&&agentState.phase==="live");
+    var who=ln.s==="ai"?"Ava · AI assistant":S.callerName;
+    var wave=(active&&ln.s==="ai")?'<span class="ai-wave"><i></i><i></i><i></i><i></i><i></i></span>':"";
+    html+='<div class="ai-msg '+(ln.s==="ai"?"ai":"caller")+'"><span class="who">'+esc(who)+'</span>'+esc(ln.t)+wave+'</div>';
+  }
+  return html;
+}
+function agentCtrlsHtml(){
+  return '<div class="ai-ctrls">'+
+    '<button class="btn ghost sm" data-act="agent-mute">'+ic(agentState.muted?"soundoff":"soundon")+(agentState.muted?"Captions only":"Sound on")+'</button>'+
+    '<button class="btn ghost sm" data-act="agent-next">'+ic("skip")+'Skip</button>'+
+    '<button class="btn sm ai-endbtn" data-act="agent-end" style="margin-left:auto">'+ic("phone")+'End call</button>'+
+  '</div>';
+}
+function agentEndHtml(S){
+  return '<div class="ai-end">'+
+    '<div class="ai-check">'+ic("check")+'</div>'+
+    '<h3>Call handled by AI</h3>'+
+    '<div class="ai-callmeta">'+esc(S.callerName)+' · '+agentElapsed()+' · no human needed</div>'+
+    '<div class="ai-outcome">'+ic(S.outIcon)+'<span>'+esc(S.outcome)+'</span></div>'+
+    (S.outNote?'<p class="ai-outnote">'+esc(S.outNote)+'</p>':'')+
+    '<div class="ai-endctrls"><button class="btn ghost" data-act="agent-reset">'+ic("phone")+'New call</button><button class="btn" data-act="agent-replay">'+ic("repeat")+'Replay</button></div>'+
+  '</div>';
+}
+function renderAgent(){
+  try{if('speechSynthesis'in window)window.speechSynthesis.getVoices();}catch(e){}
+  var S=agentScript(agentState.scenario);
+  var top='<div class="ai-top"><div class="ai-ava">'+ic("bot")+'</div><div><div class="nm">Ava · Kris Industries AI</div><div class="sub">Automated call assistant · answers 24/7</div></div>'+
+    (agentState.phase==="live"?'<div class="ai-live"><span class="ai-dot"></span>On call · '+agentElapsed()+'</div>':'')+'</div>';
+  var body;
+  if(agentState.phase==="idle")body=agentIncomingHtml(S);
+  else if(agentState.phase==="live")body='<div class="ai-convo">'+agentConvoHtml()+'</div>'+agentCtrlsHtml();
+  else body=agentEndHtml(S);
+  document.getElementById("view").innerHTML='<div class="ai-wrap">'+agentHeroHtml()+'<div class="ai-stage">'+top+body+'</div>'+agentPointsHtml()+'</div>';
+  var c=document.querySelector(".ai-convo");if(c)c.scrollTop=c.scrollHeight;
+}
+function agentSpeak(text,done){
+  if(agentState.muted||!('speechSynthesis'in window)){agentState.timer=setTimeout(done,Math.min(5600,900+text.length*42));return;}
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(text),v=agentPickVoice();
+    if(v){u.voice=v;u.lang=v.lang;}else{u.lang="en-GB";}
+    u.rate=1.03;u.pitch=1.0;u.volume=1;
+    var fired=false,fin=function(){if(fired)return;fired=true;done();};
+    u.onend=fin;u.onerror=fin;
+    window.speechSynthesis.speak(u);
+    agentState.timer=setTimeout(function(){if(fired)return;fired=true;try{window.speechSynthesis.cancel();}catch(e){}done();},Math.min(16000,2000+text.length*95));
+  }catch(e){agentState.timer=setTimeout(done,1600);}
+}
+function agentPlayStep(){
+  var L=agentScript(agentState.scenario).lines;
+  if(agentState.idx>=L.length){agentEnd();return;}
+  renderAgent();
+  var ln=L[agentState.idx],myToken=++agentState.token;
+  var done=function(){if(agentState.token!==myToken)return;agentState.token++;agentState.idx++;agentPlayStep();};
+  if(ln.s==="ai")agentSpeak(ln.t,done);
+  else agentState.timer=setTimeout(done,Math.min(4200,700+ln.t.length*33));
+}
+function agentAnswer(){
+  try{if('speechSynthesis'in window)window.speechSynthesis.getVoices();}catch(e){}
+  if(agentState.scenario==="order")agentState.orderId="KI-"+(seq++);
+  agentState.committed=false;agentState.phase="live";agentState.idx=0;agentState.started=Date.now();
+  if(agentState.tick)clearInterval(agentState.tick);agentState.tick=setInterval(agentUpdateTimer,1000);
+  agentPlayStep();
+}
+function agentSkip(){
+  agentState.token=(agentState.token||0)+1;
+  if(agentState.timer){clearTimeout(agentState.timer);agentState.timer=null;}
+  try{if('speechSynthesis'in window)window.speechSynthesis.cancel();}catch(e){}
+  agentState.idx++;agentPlayStep();
+}
+function agentEnd(){
+  if(agentState.tick){clearInterval(agentState.tick);agentState.tick=null;}
+  try{if('speechSynthesis'in window)window.speechSynthesis.cancel();}catch(e){}
+  var S=agentScript(agentState.scenario);
+  if(!agentState.committed){agentState.committed=true;if(S.commit)S.commit();}
+  agentState.phase="ended";renderAgent();
+}
+function agentReplay(){
+  agentState.token=(agentState.token||0)+1;
+  if(agentState.timer){clearTimeout(agentState.timer);agentState.timer=null;}
+  if(agentState.tick)clearInterval(agentState.tick);
+  try{if('speechSynthesis'in window)window.speechSynthesis.cancel();}catch(e){}
+  agentState.phase="live";agentState.idx=0;agentState.started=Date.now();
+  agentState.tick=setInterval(agentUpdateTimer,1000);agentPlayStep();
+}
+function agentStop(){
+  agentState.token=(agentState.token||0)+1;
+  if(agentState.timer){clearTimeout(agentState.timer);agentState.timer=null;}
+  if(agentState.tick){clearInterval(agentState.tick);agentState.tick=null;}
+  try{if('speechSynthesis'in window)window.speechSynthesis.cancel();}catch(e){}
+}
+function agentReset(){agentStop();agentState.phase="idle";agentState.idx=0;agentState.committed=false;agentState.orderId=null;renderAgent();}
+
 /* ---------- events ---------- */
-function setRole(r){state.role=r;closeNotif();document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.role===r);});render();window.scrollTo({top:0,behavior:"smooth"});}
-function render(){if(state.role==="owner")renderOwner();else if(state.role==="driver")renderDriver();else renderCustomer();}
+function setRole(r){if(typeof agentStop==="function")agentStop();state.role=r;closeNotif();document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.role===r);});render();window.scrollTo({top:0,behavior:"smooth"});}
+function render(){if(state.role==="owner")renderOwner();else if(state.role==="driver")renderDriver();else if(state.role==="agent")renderAgent();else renderCustomer();}
 var toastT;
 function toast(msg){var el=document.getElementById("toast");el.innerHTML=ic("check")+'<span>'+msg+'</span>';el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove("show");},2600);}
 function closeSheet(){document.getElementById("sheet-root").innerHTML="";sheetState=null;}
@@ -1249,6 +1507,14 @@ document.addEventListener("click",function(e){
   var el=e.target.closest("[data-act]");if(!el)return;
   var act=el.dataset.act;
   if(act==="role")setRole(el.dataset.role);
+  else if(act==="agent-answer")agentAnswer();
+  else if(act==="agent-next")agentSkip();
+  else if(act==="agent-mute"){agentState.muted=!agentState.muted;renderAgent();}
+  else if(act==="agent-end")agentEnd();
+  else if(act==="agent-replay")agentReplay();
+  else if(act==="agent-reset")agentReset();
+  else if(act==="agent-scenario"){agentStop();agentState.scenario=el.dataset.k;agentState.phase="idle";agentState.idx=0;agentState.committed=false;agentState.orderId=null;renderAgent();}
+  else if(act==="agent-decline")toast("With the AI, there's no need to decline — every call gets answered.");
   else if(act==="otab"){state.ownerTab=el.dataset.tab;renderOwner();}
   else if(act==="notif")toggleNotif();
   else if(act==="theme"){var cur=document.documentElement.getAttribute("data-theme");var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("kfo-theme",next);}catch(e2){}}
@@ -1306,5 +1572,42 @@ document.addEventListener("click",function(e){
 
 document.addEventListener("input",function(e){if(e.target&&e.target.id==="litres"){var v=parseInt(e.target.value,10);if(v)cDraft.litres=v;var qv=document.querySelector(".total .v");if(qv)qv.textContent=gyd((v||0)*PRICE[cDraft.prod]);}});
 
-render();updateBell();
+/* ---------- LIVE phone orders (AI call agent -> demo) ----------
+   Orders taken by the real AI phone agent appear here in real time.
+   To turn it on, set LIVE.url to your orders endpoint (e.g. a Supabase REST
+   URL). It must return JSON: an array of objects like
+     {"id":"KI-2001","customer":"A.C.S. Guyana","product":"ulsd","litres":5000,"site":"Rose Hall, Corentyne (Region 6)","when":"Tomorrow 07:00"}
+   Leave url empty to keep the demo offline/self-contained (default). */
+var LIVE={url:"https://xqlwokgpozmikrsbglzw.supabase.co/rest/v1/orders?select=*&order=created_at.desc&limit=50",key:"sb_publishable_ae0cfqrdbPkDjz9KSj-iZg_dBGevJTj",pollMs:4000};
+var liveSeen={},liveBaseline=false;
+function liveBadge(){
+  if(!LIVE.url||document.getElementById("livepill"))return;
+  var b=document.querySelector(".brand");if(!b)return;
+  var s=document.createElement("span");s.id="livepill";s.className="livepill";
+  s.innerHTML='<span class="ld"></span>LIVE line';b.appendChild(s);
+}
+function liveMapProd(p){p=(p||"ulsd").toString().toLowerCase();return (p==="ulsd"||p==="lsd"||p==="gas")?p:"ulsd";}
+function liveTick(){
+  if(!LIVE.url)return;
+  var headers={};if(LIVE.key){headers.apikey=LIVE.key;headers.Authorization="Bearer "+LIVE.key;}
+  try{
+    fetch(LIVE.url,{headers:headers}).then(function(r){return r.ok?r.json():null;}).then(function(rows){
+      if(!rows)return;if(!Array.isArray(rows))rows=rows.orders||rows.data||[];
+      if(!liveBaseline){rows.forEach(function(row){var id=row.id||row.order_id;if(id)liveSeen[id]=true;});liveBaseline=true;return;}
+      var added=0;
+      rows.forEach(function(row){
+        var id=row.id||row.order_id;if(!id||liveSeen[id])return;liveSeen[id]=true;
+        if(orders.some(function(o){return o.id===id;}))return;
+        var prod=liveMapProd(row.product||row.prod);var L=parseInt(row.litres,10)||0;
+        orders.unshift({id:id,customer:row.customer||"Phone order",prod:prod,litres:L,status:"pending",driver:null,addr:row.site||row.addr||"Corentyne (Region 6)",today:true,paid:false,eta:row.when||null,proof:null,viaPhone:true});
+        logEvent("AI phone agent booked "+id+" — "+(row.customer||"caller")+" ("+PSHORT[prod]+" "+fmt(L)+" L)");
+        added++;
+      });
+      if(added){if(state.role==="owner")renderOwner();else if(state.role==="agent")renderAgent();toast(added+" new phone order"+(added>1?"s":"")+" — live from the AI line");}
+    }).catch(function(){});
+  }catch(e){}
+}
+function liveStart(){if(!LIVE.url)return;liveBadge();liveTick();setInterval(liveTick,LIVE.pollMs);}
+
+render();updateBell();liveStart();
 </script>
