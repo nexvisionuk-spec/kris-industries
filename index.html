@@ -210,6 +210,9 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .leaflet-container{font-family:var(--font);background:#e7ebee}
 :root[data-theme="dark"] .lmap,:root[data-theme="dark"] .leaflet-container{background:#20242a}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .lmap,:root:not([data-theme="light"]) .leaflet-container{background:#20242a}}
+/* dark mode: invert the light map but rotate hues back so water/land/roads keep colour */
+:root[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.96) contrast(.9)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.96) contrast(.9)}}
 .leaflet-control-attribution{background:rgba(255,255,255,.82)!important;color:#333!important}
 .leaflet-control-attribution a{color:#0b5fd0!important}
 .leaflet-control-scale-line{background:rgba(255,255,255,.72)!important;color:#222!important;border-color:#777!important}
@@ -507,7 +510,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.3</span>
+      <span class="v">v1.4</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -1205,21 +1208,12 @@ function mapToSvg(cx,cy){var r=mapS.svg.getBoundingClientRect();return {x:(cx-r.
 function mapApply(){mapS.g.setAttribute("transform","translate("+mapS.tx.toFixed(2)+" "+mapS.ty.toFixed(2)+") scale("+mapS.k.toFixed(4)+")");}
 function mapClamp(){var k=mapS.k;if(mapS.tx>0)mapS.tx=0;if(mapS.ty>0)mapS.ty=0;var mnx=800*(1-k),mny=320*(1-k);if(mapS.tx<mnx)mapS.tx=mnx;if(mapS.ty<mny)mapS.ty=mny;}
 function mapZoomAt(x,y,f){if(!mapS)return;var k0=mapS.k,k=Math.min(6,Math.max(1,k0*f));mapS.tx=x-(x-mapS.tx)*(k/k0);mapS.ty=y-(y-mapS.ty)*(k/k0);mapS.k=k;mapClamp();mapApply();}
-/* tiles follow the app theme — both providers are keyless */
-function mapIsDark(){var t=document.documentElement.getAttribute("data-theme");return t==="dark"||(!t&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}
-function mapTileLayers(dark){
-  if(dark){return [
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,attribution:'Tiles &copy; Esri'}),
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,attribution:''})
-  ];}
-  return [ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}) ];
-}
+/* one keyless basemap (OpenStreetMap); dark mode inverts the tiles via CSS so it stays colourful */
 function setMapTiles(){
   if(!window.LMAP)return;
-  if(window._mapTileLayers){window._mapTileLayers.forEach(function(l){try{window.LMAP.removeLayer(l);}catch(e){}});}
-  var layers=mapTileLayers(mapIsDark());
-  layers.forEach(function(l){l.addTo(window.LMAP);});   /* tilePane sits under routes + markers automatically */
-  window._mapTileLayers=layers;
+  if(window._mapTileLayers&&window._mapTileLayers.length)return;   /* added once; theme handled by CSS filter */
+  var l=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxZoom:19,attribution:'&copy; OpenStreetMap contributors'});
+  l.addTo(window.LMAP);window._mapTileLayers=[l];
 }
 function mapBearing(a,b){var la1=a[0]*Math.PI/180,la2=b[0]*Math.PI/180,dLng=(b[1]-a[1])*Math.PI/180;var y=Math.sin(dLng)*Math.cos(la2);var x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dLng);return (Math.atan2(y,x)*180/Math.PI+360)%360;}
 function mapTripSplit(coords,remainM){
