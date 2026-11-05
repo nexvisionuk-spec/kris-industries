@@ -517,7 +517,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.7</span>
+      <span class="v">v1.8</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -992,7 +992,7 @@ function panelStock(){
 }
 function openTransfer(){
   var opts=TRUCKS.map(function(t,i){return '<option value="'+i+'">'+esc(t.plate)+(t.driver?" — "+esc(driverName(t.driver)):"")+'</option>';}).join("");
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Transfer fuel between trucks</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">Move stock from one truck to another — the overall total stays the same</div>'+
     '<div class="field"><label>From truck</label><select id="tr-from">'+opts+'</select></div>'+
@@ -1184,7 +1184,7 @@ function openDeliver(id){
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
   sheetState={id:id,photo:false,hasSig:false};
   var notes=["Water test OK — tank clear","Delivered in full","Partial — balance to follow","Tank gauged before & after","Meter reading verified"];
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Generate delivery ticket</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">Bulk Depot Fuel Delivery Slip · No. '+SLIP+'</div>'+
     '<div class="review" style="margin-bottom:14px"><div class="kv"><span class="k">Date</span><span class="vv">Today</span></div><div class="kv"><span class="k">Client</span><span class="vv">'+esc(o.customer)+'</span></div><div class="kv"><span class="k">Truck</span><span class="vv">'+esc(d.vehicle)+'</span></div><div class="kv"><span class="k">Product</span><span class="vv">'+PROD[o.prod]+'</span></div></div>'+
@@ -1285,7 +1285,7 @@ function openTrip(id){
   if(!o)return;
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
   var etaMin=o.etaMin||15,progress=o.progress||40,distKm=o.distKm||3.0;
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Delivery '+o.id+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div style="margin-bottom:13px">'+stChip(o.status)+'</div>'+
     '<div class="trip-eta"><div><div class="big">~'+etaMin+' min</div><div class="muted sm">ETA '+esc(o.eta||"—")+' · '+distKm+' km remaining</div></div>'+ic("truck")+'</div>'+
@@ -1307,7 +1307,7 @@ function openTrip(id){
 /* ---------- pre-trip check sheet ---------- */
 function openPretrip(){
   var items=["Tyres & wheel nuts","Lights & indicators","Brakes & handbrake","Fuel hoses & couplings","Fire extinguisher present","Spill kit & PPE on board","Meter calibration seal intact"];
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet"><div class="sh-top"><h3>Pre-trip vehicle check</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div><div class="sh-sub">Truck GPP 4417 · complete before first delivery</div>'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet"><div class="sh-top"><h3>Pre-trip vehicle check</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div><div class="sh-sub">Truck GPP 4417 · complete before first delivery</div>'+
     '<div class="check">'+items.map(function(t){return '<label><input type="checkbox" checked>'+esc(t)+'</label>';}).join("")+'</div>'+
     '<div class="flabel" style="margin-top:15px">Odometer (km)</div><input class="dl-input" type="number" value="84210">'+
     '<button class="btn block" data-act="confirm-pretrip" style="margin-top:15px">'+ic("check")+'Confirm & start shift</button></div></div>';
@@ -1317,7 +1317,7 @@ function openPretrip(){
 var CREDIT_DOCS=["2 forms of ID (passport / licence / ID card)","Guarantee — bank guarantee or pledged asset","Business financials","Business registration","2 character references"];
 var creditUploaded={};
 function openCreditApply(){
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Apply for a credit line</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">Upload the required documents. Kris Industries verifies them, runs checks, then sends a credit agreement to e-sign.</div>'+
     CREDIT_DOCS.map(function(d,i){var up=creditUploaded[i];return '<div class="site">'+ic(up?"check":"file")+'<div style="flex:1"><div class="nm">'+esc(d)+'</div></div>'+(up?'<span class="pill-paid">Uploaded</span>':'<button class="btn ghost sm" data-act="upload-doc" data-i="'+i+'">Upload</button>')+'</div>';}).join("")+
@@ -1326,7 +1326,7 @@ function openCreditApply(){
   '</div></div>';
 }
 function openAddSite(){
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Add delivery site</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">A new drop-off location for your orders</div>'+
     '<div class="field"><label>Site name</label><input id="as-name" type="text" placeholder="e.g. Diamond yard"></div>'+
@@ -1336,7 +1336,7 @@ function openAddSite(){
 }
 function openNewOrder(){
   var custOpts=CUSTOMERS.map(function(c){return '<option>'+esc(c.name)+'</option>';}).join("");
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>New order</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">Log an order from a phone or walk-in customer</div>'+
     '<div class="field"><label>Customer</label><select id="no-cust">'+custOpts+'</select></div>'+
@@ -1354,7 +1354,7 @@ function openReceipt(id){
   var o=orders.find(function(x){return x.id===id;});if(!o)return;
   if(receiptId!==id)receiptRating=o.rating||0; receiptId=id;
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
-  document.getElementById("sheet-root").innerHTML='<div class="overlay" data-act="close-sheet"><div class="sheet">'+
+  document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet">'+
     '<div class="sh-top"><h3>Delivery ticket '+(o.slip?("#"+o.slip):o.id)+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div style="margin-bottom:13px">'+stChip("delivered")+'</div>'+
     '<div class="rsum"><div class="big">'+fmt(o.deliveredLitres||o.litres)+' L</div><div class="sub">'+PROD[o.prod]+' delivered '+esc(o.proof?o.proof.time:"")+'</div></div>'+
