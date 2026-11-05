@@ -478,7 +478,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v0.9</span>
+      <span class="v">v1.0</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -552,6 +552,7 @@ function ic(n,cls){return '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 2
 
 /* ---------- data store ---------- */
 var PRICE={ulsd:322,lsd:308,gas:341};
+var COST={ulsd:250,lsd:238,gas:268};
 var PROD={ulsd:"Ultra Low Sulphur Diesel",lsd:"Low Sulphur Diesel",gas:"Gasoline"};
 var PSHORT={ulsd:"ULSD",lsd:"LSD",gas:"Gasoline"};
 var DRIVERS=[
@@ -928,13 +929,22 @@ function panelApplications(){
     '<div class="block"><div class="bd flush"><div class="disp">'+rows+'</div></div></div>'+
     '<div class="callout" style="margin:0"><div class="h">'+ic("file")+'How this works</div><p>New applications route straight to the legal file. Legal reviews the documents and prepares the agreement off-app, then you upload the signed agreement here — the client e-signs in their app, and the credit line opens.</p></div>';
 }
-var COST={ulsd:250,lsd:238,gas:268};
 function panelPricing(){
-  var row=function(k){var m=PRICE[k]-COST[k];return '<tr><td><span class="cust">'+PROD[k]+'</span><div class="seg">'+PSHORT[k]+'</div></td><td class="num">'+fmt(COST[k])+'</td><td style="text-align:right"><input id="pr-'+k+'" type="number" value="'+PRICE[k]+'" step="1" style="width:104px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--mono);font-size:14px;text-align:right"></td><td class="num" style="color:var(--ok)">+'+fmt(m)+'</td></tr>';};
-  return '<div class="panel-h"><h2>Pricing</h2><span class="meta">per litre, bulk · GYD</span></div>'+
-    '<div class="block"><div class="bh"><h3>'+ic("tag")+'Fuel prices</h3><span class="tag">Customers see these live</span></div><div class="bd flush"><div class="tw"><table><thead><tr><th>Product</th><th class="num">Cost /L</th><th style="text-align:right">Sell /L</th><th class="num">Margin /L</th></tr></thead><tbody>'+["ulsd","lsd","gas"].map(row).join("")+'</tbody></table></div></div></div>'+
-    '<button class="btn block" data-act="save-prices">'+ic("check")+'Save prices</button>'+
-    '<p class="hint" style="text-align:center;margin-top:10px">Prices update instantly in the customer app and in new orders — change them as your buy price moves.</p>';
+  var keys=["ulsd","lsd","gas"];
+  var rows=keys.map(function(k){
+    var p=PRICE[k], cst=COST[k], m=p-cst, pct=Math.round(m/p*1000)/10;
+    return '<div class="block"><div class="bd">'+
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+        '<div style="flex:1;min-width:150px"><div style="font-weight:600">'+PROD[k]+'</div><div class="meta">'+PSHORT[k]+' · cost G$'+fmt(cst)+'/L</div></div>'+
+        '<div class="field" style="margin:0;max-width:170px"><label>Price per litre (G$)</label><input id="pp-'+k+'" type="number" inputmode="numeric" value="'+p+'"></div>'+
+        '<div style="min-width:120px;text-align:right"><div class="meta">Margin</div><div style="font-weight:700;color:var(--ok)">G$'+fmt(m)+' <span class="meta">('+pct+'%)</span></div></div>'+
+      '</div>'+
+    '</div></div>';
+  }).join("");
+  return '<div class="panel-h"><h2>Pricing</h2><span class="meta">live rates · customers &amp; new orders use these</span></div>'+
+    rows+
+    '<div style="display:flex;justify-content:flex-end;margin-top:4px"><button class="btn primary" data-act="save-prices">Save prices</button></div>'+
+    '<div class="callout" style="margin-top:14px"><div class="h">'+ic("tag")+'How pricing works</div><p>Set your sell price per litre here. The margin updates against your landed cost. When you save, the new rates show instantly in every customer\'s app and apply to new orders — existing orders keep the price they were placed at.</p></div>';
 }
 function panelFinance(){
   var sold=57000, rev=18420000, cogs=14200000, gross=rev-cogs;
@@ -1525,7 +1535,7 @@ document.addEventListener("click",function(e){
   else if(act==="open-trip")openTrip(el.dataset.id);
   else if(act==="open-new-order")openNewOrder();
   else if(act==="open-transfer")openTransfer();
-  else if(act==="save-prices"){["ulsd","lsd","gas"].forEach(function(k){var pe=document.getElementById("pr-"+k);var pv=pe?parseInt(pe.value,10):0;if(pv>0)PRICE[k]=pv;});logEvent("Fuel prices updated by owner");renderOwner();toast("Prices saved — live in the customer app");}
+  else if(act==="save-prices"){["ulsd","lsd","gas"].forEach(function(k){var pv=parseInt(document.getElementById("pp-"+k).value,10);if(pv>0)PRICE[k]=pv;});renderOwner();toast("Prices saved — live in the customer app");}
   else if(act==="do-transfer"){var fi=parseInt(document.getElementById("tr-from").value,10);var ti=parseInt(document.getElementById("tr-to").value,10);var tp=document.getElementById("tr-prod").value;var tl=parseInt(document.getElementById("tr-litres").value,10)||0;if(fi===ti){toast("Pick two different trucks");return;}if(tl<=0){toast("Enter litres");return;}if(TRUCKS[fi][tp]<tl){toast("Not enough "+PSHORT[tp]+" on "+TRUCKS[fi].plate);return;}TRUCKS[fi][tp]-=tl;TRUCKS[ti][tp]+=tl;logEvent(fmt(tl)+" L "+PSHORT[tp]+" moved "+TRUCKS[fi].plate+" → "+TRUCKS[ti].plate);closeSheet();renderOwner();toast("Transferred "+fmt(tl)+" L "+PSHORT[tp]);}
   else if(act==="export"){toast("Exporting to "+(el.dataset.fmt||"file")+"…");}
   else if(act==="apply-credit")openCreditApply();
