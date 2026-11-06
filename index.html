@@ -569,7 +569,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v2.5</span>
+      <span class="v">v2.6</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -1092,7 +1092,7 @@ function openTransfer(){
 /* ---------- shared phone shell ---------- */
 function phoneShell(title,sub,body,nav){
   return '<div class="stage"><div class="phone app"><div class="sbar"><span>9:41</span><span class="r">'+ic("signal")+ic("battery")+'</span></div>'+
-    '<div class="ptop"><div class="ptop-l"><h3>'+title+'</h3>'+(sub?'<div class="who">'+sub+'</div>':'')+'</div><div class="ptop-r"><button class="netpill'+(state.online?'':' off')+'" data-act="toggle-net" aria-label="Connection">'+(state.online?'Online':'Offline')+'</button><button class="phelp" data-act="help" aria-label="Help">?</button></div></div>'+
+    '<div class="ptop"><div class="ptop-l"><h3>'+title+'</h3>'+(sub?'<div class="who">'+sub+'</div>':'')+'</div><div class="ptop-r"><button class="netpill'+(state.online?'':' off')+'" data-act="toggle-net" aria-label="Connection" title="Auto — follows your network · tap to demo">'+(state.online?'Online':'Offline'+(state.queued>0?' · '+state.queued:''))+'</button><button class="phelp" data-act="help" aria-label="Help">?</button></div></div>'+
     '<div class="pbody">'+body+'</div>'+nav+'</div></div>';
 }
 
@@ -1736,6 +1736,9 @@ function closeSheet(){document.getElementById("sheet-root").innerHTML="";sheetSt
 var _confirmFn=null;
 function askConfirm(title,detail,label,fn){_confirmFn=fn;document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet confirm"><div class="sh-top"><h3>'+esc(title)+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div><p class="cf-detail">'+detail+'</p><div class="cf-btns"><button class="btn ghost" data-act="close-sheet">Cancel</button><button class="btn" data-act="confirm-yes">'+esc(label)+'</button></div></div></div>';}
 function custNotify(o,text){if(o&&o.customer===CUSTOMER_ME){custAlerts.unshift({ic:"file",tone:"go",t:"now",title:text,sub:o.id+" · "+PSHORT[o.prod]+" "+fmt(o.deliveredLitres||o.litres)+" L"});}}
+/* network: auto online/offline + sync queued work to the app's store */
+function syncQueued(){var n=state.queued;state.queued=0;orders.forEach(function(o){if(o.queued)o.queued=false;});return n;}
+function setOnline(on,manual){on=!!on;if(state.online===on&&!manual)return;state.online=on;if(on){var n=syncQueued();render();toast(n>0?("Back online — "+n+" saved change(s) synced to the cloud"):"Back online");}else{render();toast("Offline — your work saves on this phone & syncs when the network returns");}}
 function openHelp(){document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet"><div class="sh-top"><h3>Help &amp; support</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
   '<p class="muted sm" style="margin:0 0 14px">We’re here if you need anything. Reach Kris Industries directly:</p>'+
   '<button class="btn block" data-act="contact" data-kind="call" data-name="Kris Industries">'+ic("phone")+'Call Kris Industries · 602-6974</button>'+
@@ -1769,7 +1772,7 @@ document.addEventListener("click",function(e){
   else if(act==="theme"){var cur=document.documentElement.getAttribute("data-theme");var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("kfo-theme",next);}catch(e2){}if(window.setMapTiles)setMapTiles();}
   else if(act==="dismiss-intro"){var i=document.getElementById("intro");if(i)i.hidden=true;}
   else if(act==="dispatch"){var sel=document.querySelector('[data-assign="'+el.dataset.id+'"]');var o=orders.find(function(x){return x.id===el.dataset.id;});if(o&&sel){o.driver=sel.value;o.status="scheduled";o.eta="Scheduled";logEvent(o.id+" assigned to "+driverName(sel.value));renderOwner();toast("Order "+o.id+" assigned to "+driverName(sel.value));}}
-  else if(act==="toggle-net"){state.online=!state.online;if(state.online&&state.queued>0){var qn=state.queued;state.queued=0;orders.forEach(function(o){if(o.queued)o.queued=false;});render();toast("Back online — "+qn+" change(s) synced");}else{render();toast(state.online?"Back online":"Offline mode — actions save on your phone & sync later");}}
+  else if(act==="toggle-net"){setOnline(!state.online,true);}
   else if(act==="help")openHelp();
   else if(act==="confirm-yes"){var cf=_confirmFn;_confirmFn=null;closeSheet();if(cf)cf();}
   else if(act==="toast-act"){var tf=window._toastFn;window._toastFn=null;var te=document.getElementById("toast");if(te)te.classList.remove("show");if(tf)tf();}
@@ -1873,5 +1876,8 @@ function liveTick(){
 }
 function liveStart(){if(!LIVE.url)return;liveBadge();liveTick();setInterval(liveTick,LIVE.pollMs);}
 
+try{if("onLine"in navigator)state.online=navigator.onLine;}catch(e){}
+window.addEventListener("online",function(){setOnline(true);});
+window.addEventListener("offline",function(){setOnline(false);});
 render();updateBell();liveStart();
 </script>
