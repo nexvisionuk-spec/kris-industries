@@ -569,7 +569,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v2.4</span>
+      <span class="v">v2.5</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -1825,7 +1825,7 @@ document.addEventListener("click",function(e){
   else if(act==="dl-statement"){logEvent(CUSTOMER_ME+" downloaded the November statement");toast("Statement PDF generated");}
   else if(act==="email-statement"){toast("Statement emailed to you");}
   else if(act==="cancel-order"){var cid0=el.dataset.id;var co0=orders.find(function(x){return x.id===cid0;});if(!co0)return;askConfirm("Cancel this order?","<b>"+esc(co0.id)+"</b> · "+PSHORT[co0.prod]+" "+fmt(co0.litres)+" L · "+esc(co0.customer)+"<br>This can’t be undone.","Cancel order",function(){var ci=orders.findIndex(function(x){return x.id===cid0;});if(ci>-1){orders.splice(ci,1);logEvent(cid0+" cancelled");if(state.role==="owner")renderOwner();else renderCustomer();toast("Order "+cid0+" cancelled");}});}
-  else if(act==="navigate"){toast("Opening navigation to "+(el.dataset.name||"destination")+"…");}
+  else if(act==="navigate"){if(state.role==="driver"){state.driverTab="route";renderDriver();}toast("Route to "+(el.dataset.name||"destination")+" — shown on the map");}
   else if(act==="toggle-notif"){var k=el.dataset.k;state.custNotif[k]=!state.custNotif[k];renderCustomer();}
   else if(act==="add-site")openAddSite();
   else if(act==="save-site"){var nm=(document.getElementById("as-name").value||"").trim();if(!nm){toast("Enter a site name");return;}var rg=document.getElementById("as-region").value;CUST_SITES.push({name:nm,region:rg});closeSheet();renderCustomer();toast("Site added — "+nm);}
