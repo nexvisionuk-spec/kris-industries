@@ -378,6 +378,21 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .qchips{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 9px;flex:none}
 .qchip{border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:16px;padding:6px 11px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer}
 .qchip:hover{border-color:var(--map-route);color:var(--map-route)}
+.tankrow{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.tankbig{font-size:26px;font-weight:700;line-height:1;font-family:var(--mono,inherit)}
+.savings{display:flex;align-items:center;gap:6px;justify-content:center;color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok);border-radius:var(--r-sm,6px);padding:7px 10px;font-size:12.5px;font-weight:600;margin-top:9px}
+.savings .ic{width:15px;height:15px;flex:none}
+.alert{display:flex;align-items:center;gap:11px;padding:11px 13px;border-top:1px solid var(--line)}
+.alert:first-child{border-top:0}
+.alert[data-act]{cursor:pointer}
+.alert[data-act]:hover{background:var(--surface-2,var(--surface))}
+.alert>.ic{width:18px;height:18px;flex:none;color:var(--muted)}
+.alert.go>.ic{color:var(--ok)}
+.alert.warn>.ic{color:var(--warn,var(--crit))}
+.alert .atxt{flex:1;min-width:0}
+.alert .at{font-size:13px;font-weight:600;color:var(--ink)}
+.alert .as{font-size:11.5px;color:var(--muted);margin-top:2px}
+.alert .atm{font-size:11px;color:var(--faint);flex:none}
 .road-row{display:flex;gap:11px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .road-row:first-child{border-top:0;padding-top:2px}
 .road-row .rr-main{flex:1;min-width:0}
@@ -534,7 +549,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v2.1</span>
+      <span class="v">v2.2</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -669,6 +684,12 @@ var CUST_SITES=[
   {name:"Rose Hall yard, Corentyne",region:"Region 6",primary:true},
   {name:"No. 19 Village site",region:"Region 6"},
   {name:"Albion estate depot",region:"Region 6"}
+];
+var CUST_TANK={prod:"ulsd",cap:12000,level:2760,perDay:920};
+var custAlerts=[
+  {ic:"truck",tone:"go",t:"now",title:"Rohan is on the way — ~12 min",sub:"KI-1042 · 5,000 L ULSD → Rose Hall yard"},
+  {ic:"file",tone:"",t:"Yest.",title:"Delivery ticket #2460 is ready",sub:"KI-1038 · 3,980 L — tap to view",act:"open-receipt",id:"KI-1038"},
+  {ic:"cash",tone:"warn",t:"3 days",title:"Invoice due soon",sub:"KI-1042 · payment due in 3 days"}
 ];
 var JOB_INSTR={
   "A.C.S. Guyana":"Water-test the tank before offloading; ask for the site foreman.",
@@ -1114,18 +1135,40 @@ function renderDriver(){
 
 /* ---------- CUSTOMER ---------- */
 var cDraft={prod:"ulsd",litres:5000,site:0,when:"asap",recurring:false};
+function bulkRate(l){return l>10000?0.04:l>5000?0.02:0;}
+function custTankCard(){
+  var tk=CUST_TANK;var pct=Math.max(2,Math.min(100,Math.round(tk.level/tk.cap*100)));
+  var days=Math.max(0,Math.floor(tk.level/tk.perDay));var low=days<=4;
+  var refill=Math.round(Math.max(tk.cap-tk.level,tk.perDay*7)/500)*500;
+  var tone=low?'var(--crit)':'var(--ok)';
+  return '<div class="block"><div class="bh"><h3>'+ic("drop")+PSHORT[tk.prod]+' tank monitor</h3>'+(low?'<span class="st" data-s="pending"><span class="d"></span>Running low</span>':'<span class="muted sm">On track</span>')+'</div><div class="bd">'+
+    '<div class="tankrow"><div class="tankbig" style="color:'+tone+'">~'+days+' day'+(days===1?'':'s')+'</div><div class="muted sm">of fuel left · '+fmt(tk.level)+' / '+fmt(tk.cap)+' L ('+pct+'%)</div></div>'+
+    '<div class="meter" style="margin:11px 0"><span style="width:'+pct+'%;background:'+tone+'"></span></div>'+
+    '<button class="btn block" data-act="reorder-now" data-l="'+refill+'">'+ic("send")+(low?'Reorder '+fmt(refill)+' L now':'Top up '+fmt(refill)+' L')+'</button>'+
+    '<p class="hint" style="text-align:center;margin:8px 0 0">Estimated from your average use of '+fmt(tk.perDay)+' L/day</p>'+
+  '</div></div>';
+}
+function custAlertsCard(){
+  if(!custAlerts.length)return "";
+  var rows=custAlerts.map(function(a){
+    var attr=(a.act==="open-receipt")?' data-act="open-receipt" data-id="'+esc(a.id)+'"':'';
+    return '<div class="alert'+(a.tone?' '+esc(a.tone):'')+'"'+attr+'>'+ic(a.ic)+'<div class="atxt"><div class="at">'+esc(a.title)+'</div><div class="as">'+esc(a.sub)+'</div></div><span class="atm">'+esc(a.t)+'</span></div>';
+  }).join("");
+  return '<div class="block"><div class="bh"><h3>'+ic("alert")+'Alerts</h3></div><div class="bd flush">'+rows+'</div></div>';
+}
 function custOrder(){
   var segBtn=function(k){return '<button data-act="cprod" data-prod="'+k+'" aria-pressed="'+(cDraft.prod===k)+'">'+PSHORT[k]+'</button>';};
-  var qVal=cDraft.litres*PRICE[cDraft.prod];
+  var rate=bulkRate(cDraft.litres);var gross=cDraft.litres*PRICE[cDraft.prod];var qVal=Math.round(gross*(1-rate));
   var siteOpts=CUST_SITES.map(function(s,i){return '<option value="'+i+'"'+(i===cDraft.site?' selected':'')+'>'+esc(s.name)+'</option>';}).join("");
-  return '<div class="block"><div class="bd">'+
+  return custTankCard()+'<div class="block"><div class="bd">'+
     '<div class="field"><label>Product</label><div class="seg">'+segBtn("ulsd")+segBtn("lsd")+segBtn("gas")+'</div></div>'+
     '<div class="field"><label for="litres">Quantity (litres)</label><input id="litres" type="number" min="500" step="500" value="'+cDraft.litres+'"><span class="hint">Price: '+gyd(PRICE[cDraft.prod])+' / L · bulk discount over 5,000 L</span></div>'+
     '<div class="field"><label for="csite">Deliver to</label><select id="csite">'+siteOpts+'</select></div>'+
     '<div class="field"><label>When</label><div class="datebtns"><button data-act="cwhen" data-when="asap" aria-pressed="'+(cDraft.when==="asap")+'">ASAP</button><button data-act="cwhen" data-when="scheduled" aria-pressed="'+(cDraft.when==="scheduled")+'">Schedule</button></div>'+(cDraft.when==="scheduled"?'<input type="date" style="margin-top:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:var(--r-sm);padding:9px 10px;font-family:inherit;font-size:14px;width:100%">':'')+'</div>'+
     '<div class="toggle"><div><div style="font-weight:600;font-size:13px">Recurring order</div><div class="faint sm">Repeat every week</div></div><button class="sw" data-act="crecur" aria-pressed="'+(cDraft.recurring)+'" aria-label="Recurring"></button></div>'+
     '<div class="total"><span class="l">Estimated total</span><span class="v">'+gyd(qVal)+'</span></div>'+
-    '<button class="btn block" data-act="place-order">'+ic("send")+'Place order</button>'+
+    '<div id="savings" class="savings"'+(rate>0?'':' style="display:none"')+'>'+(rate>0?ic("tag")+'Bulk −'+Math.round(rate*100)+'% · you save '+gyd(gross-qVal):'')+'</div>'+
+    '<button class="btn block" data-act="place-order" style="margin-top:11px">'+ic("send")+'Place order</button>'+
     '<p class="hint" style="text-align:center;margin:9px 0 0">Pay on account (14-day terms) · MMG enabled</p>'+
   '</div></div>';
 }
@@ -1145,19 +1188,29 @@ function custOrders(){
     return '<div class="mrow"><div><div class="mi">'+PSHORT[o.prod]+' · '+fmt(o.litres)+' L</div><div class="ms"><span class="oid">'+o.id+'</span> · '+sub+' · '+gyd(value(o))+'</div></div>'+right+'</div>';
   }).join("");
   var tripHtml=(active&&active.status==="in_transit")?'<div class="block"><div class="bh"><h3>'+ic("truck")+'Live tracking</h3>'+stChip("in_transit")+'</div><div class="bd" style="display:flex;flex-direction:column;gap:11px">'+tripCard(active)+'</div></div>':"";
-  return tripHtml+trackHtml+'<div class="block"><div class="bh"><h3>'+ic("list")+'Order history</h3></div><div class="bd">'+rows+'</div></div>';
+  return custAlertsCard()+tripHtml+trackHtml+'<div class="block"><div class="bh"><h3>'+ic("list")+'Order history</h3></div><div class="bd">'+rows+'</div></div>';
 }
 function custInvoices(){
   var inv=orders.filter(function(o){return o.customer===CUSTOMER_ME&&o.status==="delivered";});
   var owed=inv.filter(function(o){return !o.paid;}).reduce(function(a,o){return a+value(o);},0);
   var paid=inv.filter(function(o){return o.paid;}).reduce(function(a,o){return a+value(o);},0);
+  var vol=inv.reduce(function(a,o){return a+(o.deliveredLitres||o.litres);},0);
+  var billed=owed+paid;
   var rows=inv.map(function(o){
     var right=o.paid?'<span class="pill-paid">Paid</span>':'<button class="btn sm" data-act="pay-invoice" data-id="'+o.id+'">Pay '+gyd(value(o))+'</button>';
     return '<div class="mrow"><div><div class="mi">'+o.id+' · '+gyd(value(o))+'</div><div class="ms">'+PSHORT[o.prod]+' · '+fmt(o.deliveredLitres||o.litres)+' L · '+(o.proof?esc(o.proof.time):"")+'</div></div>'+right+'</div>';
   }).join("");
   return '<div class="dstats" style="margin-bottom:13px"><div class="d"><div class="v" style="color:var(--crit)">'+fmt(owed)+'</div><div class="l">DUE (GYD)</div></div><div class="d"><div class="v" style="color:var(--ok)">'+fmt(paid)+'</div><div class="l">PAID (GYD)</div></div></div>'+
     (owed>0?'<button class="btn block" data-act="pay-all" style="margin-bottom:13px">'+ic("cash")+'Pay all due via MMG — '+gyd(owed)+'</button>':'')+
-    '<div class="block"><div class="bh"><h3>'+ic("file")+'Invoices</h3></div><div class="bd">'+rows+'</div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("file")+'Account statement · November</h3></div><div class="bd">'+
+      '<div class="kv"><span class="k">Deliveries</span><span class="vv">'+inv.length+'</span></div>'+
+      '<div class="kv"><span class="k">Volume delivered</span><span class="vv">'+fmt(vol)+' L</span></div>'+
+      '<div class="kv"><span class="k">Total billed</span><span class="vv">'+gyd(billed)+'</span></div>'+
+      '<div class="kv"><span class="k">Paid</span><span class="vv">'+gyd(paid)+'</span></div>'+
+      '<div class="kv"><span class="k">Outstanding</span><span class="vv">'+gyd(owed)+'</span></div>'+
+      '<div class="rowbtns" style="margin-top:12px"><button class="btn ghost sm" data-act="dl-statement">'+ic("file")+'Download PDF</button><button class="btn ghost sm" data-act="email-statement">'+ic("send")+'Email to me</button></div>'+
+    '</div></div>'+
+    '<div class="block"><div class="bh"><h3>'+ic("coins")+'Invoices</h3></div><div class="bd">'+rows+'</div></div>'+
     '<p class="hint" style="text-align:center">Statements available monthly · 14-day payment terms</p>';
 }
 function custPrices(){
@@ -1698,6 +1751,9 @@ document.addEventListener("click",function(e){
   else if(act==="cwhen"){cDraft.when=el.dataset.when;renderCustomer();}
   else if(act==="crecur"){cDraft.recurring=!cDraft.recurring;renderCustomer();}
   else if(act==="reorder"){var ro=orders.find(function(x){return x.id===el.dataset.id;});if(ro){var nid="KI-"+(seq++);orders.unshift({id:nid,customer:CUSTOMER_ME,prod:ro.prod,litres:ro.litres,status:"pending",driver:null,addr:ro.addr,today:true,paid:false,eta:null,proof:null});logEvent(nid+" re-ordered by "+CUSTOMER_ME);state.custTab="orders";renderCustomer();toast("Re-ordered — "+nid);}}
+  else if(act==="reorder-now"){var rl=parseInt(el.dataset.l,10)||CUST_TANK.perDay*7;var nid2="KI-"+(seq++);orders.unshift({id:nid2,customer:CUSTOMER_ME,prod:CUST_TANK.prod,litres:rl,status:"pending",driver:null,addr:(CUST_SITES[0]&&CUST_SITES[0].name)||"Rose Hall",today:true,paid:false,eta:null,proof:null});CUST_TANK.level=CUST_TANK.cap;logEvent(nid2+" ordered from tank reminder by "+CUSTOMER_ME);state.custTab="orders";renderCustomer();toast("Order placed — "+nid2);}
+  else if(act==="dl-statement"){logEvent(CUSTOMER_ME+" downloaded the November statement");toast("Statement PDF generated");}
+  else if(act==="email-statement"){toast("Statement emailed to you");}
   else if(act==="cancel-order"){var ci=orders.findIndex(function(x){return x.id===el.dataset.id;});if(ci>-1){var co=orders[ci];orders.splice(ci,1);logEvent(co.id+" cancelled");if(state.role==="owner")renderOwner();else renderCustomer();toast("Order "+co.id+" cancelled");}}
   else if(act==="navigate"){toast("Opening navigation to "+(el.dataset.name||"destination")+"…");}
   else if(act==="toggle-notif"){var k=el.dataset.k;state.custNotif[k]=!state.custNotif[k];renderCustomer();}
@@ -1708,7 +1764,7 @@ document.addEventListener("click",function(e){
   else if(act==="pay-all"){var n=0;orders.forEach(function(o){if(o.customer===CUSTOMER_ME&&o.status==="delivered"&&!o.paid){o.paid=true;n++;}});if(n){logEvent(n+" invoice(s) paid via MMG by "+CUSTOMER_ME);renderCustomer();toast(n+" invoice(s) paid");}}
 },false);
 
-document.addEventListener("input",function(e){if(e.target&&e.target.id==="litres"){var v=parseInt(e.target.value,10);if(v)cDraft.litres=v;var qv=document.querySelector(".total .v");if(qv)qv.textContent=gyd((v||0)*PRICE[cDraft.prod]);}});
+document.addEventListener("input",function(e){if(e.target&&e.target.id==="litres"){var v=parseInt(e.target.value,10)||0;if(v)cDraft.litres=v;var rate=bulkRate(v),gross=v*PRICE[cDraft.prod],net=Math.round(gross*(1-rate));var qv=document.querySelector(".total .v");if(qv)qv.textContent=gyd(net);var sv=document.getElementById("savings");if(sv){if(rate>0){sv.style.display="";sv.innerHTML=ic("tag")+'Bulk −'+Math.round(rate*100)+'% · you save '+gyd(gross-net);}else{sv.style.display="none";}}}});
 
 /* ---------- LIVE phone orders (AI call agent -> demo) ----------
    Orders taken by the real AI phone agent appear here in real time.
