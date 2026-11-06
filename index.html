@@ -225,6 +225,10 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
 .leaflet-control-attribution a{color:var(--muted)!important}
 .leaflet-control-scale-line{background:color-mix(in srgb,var(--surface) 72%,transparent);color:var(--map-label);border-color:var(--map-label);box-shadow:none}
 .lm-depot{width:15px;height:15px;background:var(--map-route);border:2px solid #fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.lm-stop{width:17px;height:17px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700;line-height:1}
+.maplegend{display:flex;gap:7px 16px;flex-wrap:wrap;padding:10px 2px 0;font-size:11.5px;color:var(--muted)}
+.maplegend span{display:inline-flex;align-items:center;gap:6px}
+.maplegend i.lg{width:9px;height:9px;border-radius:50%;flex:none}
 .lm-pin{filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
 .lm-puck{position:relative;width:34px;height:34px}
 .lm-pulse{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--map-route);opacity:.3;animation:lmpulse 2.1s ease-out infinite;pointer-events:none}
@@ -517,7 +521,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v1.8</span>
+      <span class="v">v1.9</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -819,7 +823,8 @@ function routeMap(){
     '<div id="lmap" class="lmap" data-tid="'+tid+'" role="img" aria-label="Live delivery on the Corentyne corridor, East Berbice, Guyana"></div>'+
     '<div class="mapbadge">'+ic("tanker")+'Live · '+tid+'</div>'+
     '<div class="mapctrl"><button type="button" data-act="map-zoom" data-dir="in" aria-label="Zoom in">+</button><button type="button" data-act="map-zoom" data-dir="out" aria-label="Zoom out">−</button><button type="button" data-act="map-zoom" data-dir="reset" aria-label="Recenter">'+ic("pin")+'</button></div>'+
-    '<div class="maphint">Pinch to zoom · drag to pan</div></div>';
+    '<div class="maphint">Pinch to zoom · drag to pan</div></div>'+
+    '<div class="maplegend"><span><i class="lg" style="background:var(--ok)"></i>Delivered</span><span><i class="lg" style="background:var(--map-route)"></i>En route</span><span><i class="lg" style="background:var(--warn)"></i>Scheduled</span></div>';
 }
 function tripCard(o){
   var d=DRIVERS.find(function(x){return x.id===o.driver;})||DRIVERS[0];
@@ -1246,14 +1251,39 @@ function drawTrip(coords,tid){
   L.polyline(s.travelled,{color:rt,weight:5,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(grp);
   var truckIcon=L.divIcon({className:"",html:'<div class="lm-puck"><div class="lm-pulse"></div><div class="lm-disc"><svg viewBox="0 0 24 24" style="transform:rotate('+s.bearing.toFixed(0)+'deg)"><path fill="#fff" d="M12 3 L18.5 18 L12 14.5 L5.5 18 Z"/></svg></div></div>',iconSize:[34,34],iconAnchor:[17,17]});
   L.marker(s.truck,{icon:truckIcon,zIndexOffset:1000,keyboard:false}).addTo(grp).on("click",function(){openTrip(tid);});
-  window.LMAPBOUNDS=L.latLngBounds(coords);
-  try{window.LMAP.fitBounds(window.LMAPBOUNDS,{padding:[34,34]});}catch(e){}
+  var b=L.latLngBounds(coords);
+  if(window._stopLL&&window._stopLL.length)window._stopLL.forEach(function(p){b.extend(p);});
+  window.LMAPBOUNDS=b;
+  try{window.LMAP.fitBounds(b,{padding:[34,34]});}catch(e){}
+}
+/* every delivery address for the day, placed at its real Corentyne location */
+var STOPLL={
+  "A.C.S. Guyana":[6.2700,-57.3700],
+  "Port Mourant Rice":[6.2167,-57.3500],
+  "Skeldon Energy Inc.":[5.8833,-57.1333],
+  "Rose Hall Estate":[6.2560,-57.3560],
+  "Corentyne Sawmills":[5.9050,-57.1480]
+};
+function drawStops(map){
+  if(window._stopsLayer){try{map.removeLayer(window._stopsLayer);}catch(e){}}
+  var grp=L.layerGroup().addTo(map);window._stopsLayer=grp;window._stopLL=[];
+  var cs=getComputedStyle(document.documentElement);
+  var okc=(cs.getPropertyValue("--ok")||"#1f844a").trim(),amb=(cs.getPropertyValue("--warn")||"#a76316").trim();
+  orders.forEach(function(o){
+    if(!o.today||o.status==="in_transit")return;   /* the en-route stop is the live truck */
+    var ll=STOPLL[o.customer];if(!ll)return;
+    window._stopLL.push(ll);
+    var done=o.status==="delivered";
+    var icon=L.divIcon({className:"",html:'<div class="lm-stop" style="background:'+(done?okc:amb)+'">'+(done?'&#10003;':'')+'</div>',iconSize:[17,17],iconAnchor:[8,8]});
+    var when=done?"delivered":(o.eta?("ETA "+o.eta):o.status);
+    L.marker(ll,{icon:icon,keyboard:false}).addTo(grp).bindTooltip(esc(o.customer)+" · "+fmt(o.litres)+" L · "+when,{direction:"top",offset:[0,-9],className:"lm-tt"});
+  });
 }
 function initMap(){
   if(typeof L==="undefined")return;
   var el=document.getElementById("lmap");if(!el)return;
   var tid=el.getAttribute("data-tid")||"KI-1042";
-  if(window.LMAP){try{window.LMAP.remove();}catch(e){}window.LMAP=null;window._mapTileLayers=null;window._tripLayer=null;}
+  if(window.LMAP){try{window.LMAP.remove();}catch(e){}window.LMAP=null;window._mapTileLayers=null;window._tripLayer=null;window._stopsLayer=null;}
   /* real Corentyne corridor, East Berbice (Region 6), Guyana */
   var DEPOT=[5.8872,-57.1497],   /* Corriverton depot */
       DEST=[6.2700,-57.3700];    /* A.C.S. Guyana — Rose Hall */
@@ -1266,6 +1296,7 @@ function initMap(){
   var destIcon=L.divIcon({className:"lm-pin",html:'<svg width="22" height="26" viewBox="0 0 22 26"><path style="fill:var(--ok);stroke:#fff;stroke-width:1.6" d="M11 25 C3 15 2 11 2 9 a9 9 0 0 1 18 0 c0 2 -1 6 -9 16 Z"/><circle cx="11" cy="9" r="3.2" fill="#fff"/></svg>',iconSize:[22,26],iconAnchor:[11,25]});
   L.marker(DEPOT,{icon:depotIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("Depot",{permanent:true,direction:"top",offset:[0,-7],className:"lm-tt"});
   L.marker(DEST,{icon:destIcon,interactive:false,keyboard:false}).addTo(map).bindTooltip("A.C.S. Guyana",{permanent:true,direction:"top",offset:[0,-24],className:"lm-tt"});
+  drawStops(map);           /* every delivery address for the day */
   drawTrip(fallback,tid);   /* shows instantly; upgraded to real roads below */
   var ourMap=map;
   var url="https://router.project-osrm.org/route/v1/driving/"+DEPOT[1]+","+DEPOT[0]+";"+DEST[1]+","+DEST[0]+"?overview=full&geometries=geojson";
