@@ -549,7 +549,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v2.2</span>
+      <span class="v">v2.3</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -623,10 +623,10 @@ var ICONS={
 function ic(n,cls){return '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||'')+'</svg>';}
 
 /* ---------- data store ---------- */
-var PRICE={ulsd:322,lsd:308,gas:341};
-var COST={ulsd:250,lsd:238,gas:268};
-var PROD={ulsd:"Ultra Low Sulphur Diesel",lsd:"Low Sulphur Diesel",gas:"Gasoline"};
-var PSHORT={ulsd:"ULSD",lsd:"LSD",gas:"Gasoline"};
+var PRICE={ulsd:322,lsd:308,gas:341,kero:264};
+var COST={ulsd:250,lsd:238,gas:268,kero:205};
+var PROD={ulsd:"Ultra Low Sulphur Diesel",lsd:"Low Sulphur Diesel",gas:"Gasoline",kero:"Kerosene"};
+var PSHORT={ulsd:"ULSD",lsd:"LSD",gas:"Gasoline",kero:"Kero"};
 var DRIVERS=[
   {id:"rohan",name:"Rohan Persaud",vehicle:"Truck GAH 1625"},
   {id:"devi", name:"Devi Singh",   vehicle:"Truck GAD 891"},
@@ -655,10 +655,11 @@ var orders=[
   {id:"KI-1041",customer:"Skeldon Energy Inc.",prod:"lsd",litres:8000,status:"scheduled",driver:"devi",addr:"Skeldon, Corentyne (Region 6)",today:true,paid:false,eta:"14:30",proof:null},
   {id:"KI-1040",customer:"Rose Hall Estate",prod:"gas",litres:3000,status:"delivered",driver:"mark",addr:"Rose Hall, Corentyne (Region 6)",today:true,paid:false,deliveredLitres:3000,proof:{time:"08:52",sig:true,photo:true}},
   {id:"KI-1039",customer:"Corentyne Sawmills",prod:"ulsd",litres:12000,status:"scheduled",driver:"rohan",addr:"Corriverton, Corentyne (Region 6)",today:false,paid:false,eta:"Tomorrow 07:00",proof:null},
-  {id:"KI-1038",customer:"A.C.S. Guyana",prod:"ulsd",litres:4000,status:"delivered",driver:"rohan",addr:"Rose Hall, Corentyne (Region 6)",today:false,paid:true,deliveredLitres:3980,proof:{time:"Yesterday 15:10",sig:true,photo:true}}
+  {id:"KI-1038",customer:"A.C.S. Guyana",prod:"ulsd",litres:4000,status:"delivered",driver:"rohan",addr:"Rose Hall, Corentyne (Region 6)",today:false,paid:true,deliveredLitres:3980,proof:{time:"Yesterday 15:10",sig:true,photo:true}},
+  {id:"KI-1037",customer:"Port Mourant Rice",prod:"kero",litres:2500,status:"delivered",driver:"devi",addr:"Port Mourant, Corentyne (Region 6)",today:false,paid:true,deliveredLitres:2500,proof:{time:"Yesterday 10:20",sig:true,photo:true}}
 ];
-var stock={ulsd:62,lsd:34,gas:71};
-var CAP={ulsd:50000,lsd:40000,gas:30000};
+var stock={ulsd:62,lsd:34,gas:71,kero:58};
+var CAP={ulsd:50000,lsd:40000,gas:30000,kero:20000};
 var activity=[
   {t:"08:52",text:"KI-1040 delivered to Rose Hall Estate — proof captured"},
   {t:"08:30",text:"KI-1042 dispatched to Rohan Persaud (GAH 1625)"},
@@ -922,12 +923,12 @@ function panelCustomers(){
   return '<div class="panel-h"><h2>Customers</h2><span class="meta">'+CUSTOMERS.length+' accounts</span></div><div class="block"><div class="bd flush"><div class="tw"><table><thead><tr><th>Customer</th><th>Region</th><th>Terms</th><th class="num">Balance (GYD)</th><th>Credit used</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>';
 }
 function panelReports(){
-  var keys=["ulsd","lsd","gas"];
+  var keys=Object.keys(PROD);
   var delivered=orders.filter(function(o){return o.status==="delivered";});
-  var vol={ulsd:0,lsd:0,gas:0},rev={ulsd:0,lsd:0,gas:0},cv={};
-  delivered.forEach(function(o){var L=o.deliveredLitres||o.litres;vol[o.prod]+=L;rev[o.prod]+=L*PRICE[o.prod];cv[o.customer]=(cv[o.customer]||0)+L;});
-  var maxVol=Math.max(1,vol.ulsd,vol.lsd,vol.gas),maxRev=Math.max(1,rev.ulsd,rev.lsd,rev.gas);
-  var totalL=vol.ulsd+vol.lsd+vol.gas,totalRev=rev.ulsd+rev.lsd+rev.gas;
+  var vol={},rev={},cv={};keys.forEach(function(k){vol[k]=0;rev[k]=0;});
+  delivered.forEach(function(o){var L=o.deliveredLitres||o.litres;vol[o.prod]=(vol[o.prod]||0)+L;rev[o.prod]=(rev[o.prod]||0)+L*PRICE[o.prod];cv[o.customer]=(cv[o.customer]||0)+L;});
+  var maxVol=Math.max.apply(null,[1].concat(keys.map(function(k){return vol[k];}))),maxRev=Math.max.apply(null,[1].concat(keys.map(function(k){return rev[k];})));
+  var totalL=keys.reduce(function(a,k){return a+vol[k];},0),totalRev=keys.reduce(function(a,k){return a+rev[k];},0);
   var bar=function(label,val,unit,pct){return '<div class="b"><div class="t"><b>'+label+'</b><span class="n">'+fmt(val)+' '+unit+'</span></div><div class="track2"><span style="width:'+Math.max(4,Math.round(pct*100))+'%"></span></div></div>';};
   var volBars=keys.map(function(k){return bar(PROD[k],vol[k],"L",vol[k]/maxVol);}).join("");
   var revBars=keys.map(function(k){return bar(PROD[k],rev[k],"GYD",rev[k]/maxRev);}).join("");
@@ -956,7 +957,7 @@ function panelSettings(){
       '<div class="kv"><span class="k">Email</span><span class="vv">kbalram40@gmail.com</span></div>'+
       '<div class="kv"><span class="k">GEA licence</span><span class="vv">Import & Wholesale</span></div>'+
       '<div class="kv"><span class="k">Depot</span><span class="vv">Corriverton (Region 6)</span></div>'+
-      '<div class="kv"><span class="k">Products</span><span class="vv">ULSD · LSD · Gasoline</span></div>'+
+      '<div class="kv"><span class="k">Products</span><span class="vv">ULSD · LSD · Gasoline · Kerosene</span></div>'+
       '<div class="kv"><span class="k">Currency</span><span class="vv">GYD</span></div>'+
     '</div></div>'+
     '<div class="block"><div class="bh"><h3>'+ic("users")+'Team & access</h3><span class="tag">'+team.length+' users</span></div><div class="bd flush"><div class="tw"><table><thead><tr><th>User</th><th>Role</th></tr></thead><tbody>'+rows+'</tbody></table></div></div></div>'+
@@ -983,7 +984,7 @@ function panelApplications(){
     '<div class="callout" style="margin:0"><div class="h">'+ic("file")+'How this works</div><p>New applications route straight to the legal file. Legal reviews the documents and prepares the agreement off-app, then you upload the signed agreement here — the client e-signs in their app, and the credit line opens.</p></div>';
 }
 function panelPricing(){
-  var keys=["ulsd","lsd","gas"];
+  var keys=Object.keys(PROD);
   var rows=keys.map(function(k){
     var p=PRICE[k], cst=COST[k], m=p-cst, pct=Math.round(m/p*1000)/10;
     return '<div class="block"><div class="bd">'+
@@ -1022,7 +1023,7 @@ function panelFinance(){
     '<p class="hint" style="text-align:center;margin-top:10px">'+ic("user")+' Restricted — only Owner/Admin roles can view Finance.</p>';
 }
 function panelStock(){
-  var keys=["ulsd","lsd","gas"];
+  var keys=Object.keys(PROD);
   var tanks=keys.map(function(k){var low=stock[k]<40;var litres=Math.round(CAP[k]*stock[k]/100);
     return '<div class="tank'+(low?' low':'')+'"><div class="top"><div class="nm">'+PROD[k]+'<small>cap '+fmt(CAP[k])+' L</small></div><div class="pct">'+stock[k]+'%</div></div><div class="meter"><span style="width:'+stock[k]+'%"></span></div><div class="sub">≈ '+fmt(litres)+' L on hand'+(low?' · reorder recommended':'')+'</div></div>';
   }).join("");
@@ -1044,7 +1045,7 @@ function openTransfer(){
     '<div class="sh-sub">Move stock from one truck to another — the overall total stays the same</div>'+
     '<div class="field"><label>From truck</label><select id="tr-from">'+opts+'</select></div>'+
     '<div class="field"><label>To truck</label><select id="tr-to">'+opts+'</select></div>'+
-    '<div class="field"><label>Product</label><select id="tr-prod"><option value="ulsd">Ultra Low Sulphur Diesel</option><option value="lsd">Low Sulphur Diesel</option><option value="gas">Gasoline</option></select></div>'+
+    '<div class="field"><label>Product</label><select id="tr-prod"><option value="ulsd">Ultra Low Sulphur Diesel</option><option value="lsd">Low Sulphur Diesel</option><option value="gas">Gasoline</option><option value="kero">Kerosene</option></select></div>'+
     '<div class="field"><label>Litres</label><input id="tr-litres" type="number" value="1000" step="100"></div>'+
     '<button class="btn block" data-act="do-transfer">'+ic("repeat")+'Transfer</button>'+
   '</div></div>';
@@ -1161,7 +1162,7 @@ function custOrder(){
   var rate=bulkRate(cDraft.litres);var gross=cDraft.litres*PRICE[cDraft.prod];var qVal=Math.round(gross*(1-rate));
   var siteOpts=CUST_SITES.map(function(s,i){return '<option value="'+i+'"'+(i===cDraft.site?' selected':'')+'>'+esc(s.name)+'</option>';}).join("");
   return custTankCard()+'<div class="block"><div class="bd">'+
-    '<div class="field"><label>Product</label><div class="seg">'+segBtn("ulsd")+segBtn("lsd")+segBtn("gas")+'</div></div>'+
+    '<div class="field"><label>Product</label><div class="seg">'+segBtn("ulsd")+segBtn("lsd")+segBtn("gas")+segBtn("kero")+'</div></div>'+
     '<div class="field"><label for="litres">Quantity (litres)</label><input id="litres" type="number" min="500" step="500" value="'+cDraft.litres+'"><span class="hint">Price: '+gyd(PRICE[cDraft.prod])+' / L · bulk discount over 5,000 L</span></div>'+
     '<div class="field"><label for="csite">Deliver to</label><select id="csite">'+siteOpts+'</select></div>'+
     '<div class="field"><label>When</label><div class="datebtns"><button data-act="cwhen" data-when="asap" aria-pressed="'+(cDraft.when==="asap")+'">ASAP</button><button data-act="cwhen" data-when="scheduled" aria-pressed="'+(cDraft.when==="scheduled")+'">Schedule</button></div>'+(cDraft.when==="scheduled"?'<input type="date" style="margin-top:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:var(--r-sm);padding:9px 10px;font-family:inherit;font-size:14px;width:100%">':'')+'</div>'+
@@ -1468,7 +1469,7 @@ function openNewOrder(){
     '<div class="sh-top"><h3>New order</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
     '<div class="sh-sub">Log an order from a phone or walk-in customer</div>'+
     '<div class="field"><label>Customer</label><select id="no-cust">'+custOpts+'</select></div>'+
-    '<div class="field"><label>Product</label><select id="no-prod"><option value="ulsd">Ultra Low Sulphur Diesel</option><option value="lsd">Low Sulphur Diesel</option><option value="gas">Gasoline</option></select></div>'+
+    '<div class="field"><label>Product</label><select id="no-prod"><option value="ulsd">Ultra Low Sulphur Diesel</option><option value="lsd">Low Sulphur Diesel</option><option value="gas">Gasoline</option><option value="kero">Kerosene</option></select></div>'+
     '<div class="field"><label>Quantity (litres)</label><input id="no-litres" type="number" value="5000" step="500"></div>'+
     '<div class="field"><label>Delivery address</label><input id="no-addr" type="text" placeholder="Site / yard address"></div>'+
     '<button class="btn block" data-act="create-order">'+ic("plus")+'Create order</button>'+
@@ -1711,7 +1712,7 @@ document.addEventListener("click",function(e){
   else if(act==="open-trip")openTrip(el.dataset.id);
   else if(act==="open-new-order")openNewOrder();
   else if(act==="open-transfer")openTransfer();
-  else if(act==="save-prices"){["ulsd","lsd","gas"].forEach(function(k){var pv=parseInt(document.getElementById("pp-"+k).value,10);if(pv>0)PRICE[k]=pv;});renderOwner();toast("Prices saved — live in the customer app");}
+  else if(act==="save-prices"){Object.keys(PROD).forEach(function(k){var el2=document.getElementById("pp-"+k);if(!el2)return;var pv=parseInt(el2.value,10);if(pv>0)PRICE[k]=pv;});renderOwner();toast("Prices saved — live in the customer app");}
   else if(act==="do-transfer"){var fi=parseInt(document.getElementById("tr-from").value,10);var ti=parseInt(document.getElementById("tr-to").value,10);var tp=document.getElementById("tr-prod").value;var tl=parseInt(document.getElementById("tr-litres").value,10)||0;if(fi===ti){toast("Pick two different trucks");return;}if(tl<=0){toast("Enter litres");return;}if(TRUCKS[fi][tp]<tl){toast("Not enough "+PSHORT[tp]+" on "+TRUCKS[fi].plate);return;}TRUCKS[fi][tp]-=tl;TRUCKS[ti][tp]+=tl;logEvent(fmt(tl)+" L "+PSHORT[tp]+" moved "+TRUCKS[fi].plate+" → "+TRUCKS[ti].plate);closeSheet();renderOwner();toast("Transferred "+fmt(tl)+" L "+PSHORT[tp]);}
   else if(act==="export"){toast("Exporting to "+(el.dataset.fmt||"file")+"…");}
   else if(act==="apply-credit")openCreditApply();
@@ -1780,7 +1781,7 @@ function liveBadge(){
   var s=document.createElement("span");s.id="livepill";s.className="livepill";
   s.innerHTML='<span class="ld"></span>LIVE line';b.appendChild(s);
 }
-function liveMapProd(p){p=(p||"ulsd").toString().toLowerCase();return (p==="ulsd"||p==="lsd"||p==="gas")?p:"ulsd";}
+function liveMapProd(p){p=(p||"ulsd").toString().toLowerCase();return PROD[p]?p:"ulsd";}
 function liveTick(){
   if(!LIVE.url)return;
   var headers={};if(LIVE.key){headers.apikey=LIVE.key;headers.Authorization="Bearer "+LIVE.key;}
