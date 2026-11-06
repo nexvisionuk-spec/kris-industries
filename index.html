@@ -343,6 +343,26 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
   padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;max-width:90vw;display:flex;align-items:center;gap:8px}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast .ic{color:var(--ok)}
+.toast .toast-undo{margin-left:4px;background:transparent;border:0;color:#f0b84a;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;text-decoration:underline}
+/* phone header controls (foundation) */
+.ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ptop-l{min-width:0}
+.ptop-r{display:flex;align-items:center;gap:6px;flex:none;padding-top:2px}
+.netpill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line-2);background:var(--surface);color:var(--ok);border-radius:14px;padding:3px 9px 3px 8px;font-size:10.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.netpill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.netpill.off{color:var(--warn,#c47d1a)}
+.netpill.off::before{background:var(--warn,#c47d1a)}
+.phelp{width:24px;height:24px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--muted);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;line-height:1}
+.wabtn{display:inline-flex;align-items:center;gap:5px;border:1px solid #25d366;background:rgba(37,211,102,.12);color:#1a9e4b;border-radius:16px;padding:5px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;flex:none}
+.wabtn .ic{width:15px;height:15px}
+.btn.wa{background:#25d366;border-color:#25d366;color:#083a1c}
+.sheet.confirm{max-width:400px}
+.cf-detail{color:var(--muted);font-size:14px;margin:4px 0 18px;line-height:1.55}
+.cf-detail b{color:var(--ink)}
+.cf-btns{display:flex;gap:10px}
+.cf-btns .btn{flex:1}
+.btn.block.hero{background:var(--ok);border-color:var(--ok);color:#fff;margin-bottom:12px}
+.qsyn{display:inline-block;font-size:10px;font-weight:700;color:var(--warn,#c47d1a);background:rgba(196,125,26,.14);border-radius:4px;padding:1px 6px;margin-left:6px;letter-spacing:.03em}
 :focus-visible{outline:2px solid var(--link);outline-offset:2px}
 
 /* phone bottom nav + deeper app screens */
@@ -549,7 +569,7 @@ td .cust{font-weight:600} td .seg{font-size:11.5px;color:var(--faint);margin-top
         <path d="M19 24l11-13h6L25 24l11 13h-6z" fill="#fff"/>
       </svg>
       <span>Kris Fuel Ops</span>
-      <span class="v">v2.3</span>
+      <span class="v">v2.4</span>
     </div>
     <div class="spacer"></div>
     <div class="tabs" role="tablist" aria-label="View">
@@ -692,6 +712,7 @@ var custAlerts=[
   {ic:"file",tone:"",t:"Yest.",title:"Delivery ticket #2460 is ready",sub:"KI-1038 · 3,980 L — tap to view",act:"open-receipt",id:"KI-1038"},
   {ic:"cash",tone:"warn",t:"3 days",title:"Invoice due soon",sub:"KI-1042 · payment due in 3 days"}
 ];
+var CUST_TANKS=[{name:"A.C.S. Guyana",prod:"ulsd",days:3},{name:"Rose Hall Estate",prod:"gas",days:2},{name:"Port Mourant Rice",prod:"kero",days:5},{name:"Corentyne Sawmills",prod:"ulsd",days:6}];
 var JOB_INSTR={
   "A.C.S. Guyana":"Water-test the tank before offloading; ask for the site foreman.",
   "Skeldon Energy Inc.":"Gate pass required; report to the estate weighbridge.",
@@ -710,7 +731,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp
 function custBalance(name){return orders.filter(function(o){return o.customer===name&&o.status==="delivered"&&!o.paid;}).reduce(function(a,o){return a+value(o);},0);}
 function initials(n){return n.split(" ").filter(Boolean).slice(0,2).map(function(w){return w[0];}).join("").toUpperCase();}
 
-var state={role:"owner",ownerTab:"overview",driverTab:"jobs",custTab:"order",preTripDone:false,unread:0,notifOpen:false,
+var state={role:"owner",ownerTab:"overview",driverTab:"jobs",custTab:"order",preTripDone:false,unread:0,notifOpen:false,online:true,queued:0,
   auth:{owner:false,driver:false,customer:false},authMode:{owner:"login",driver:"login",customer:"login"},su:{customer:1,driver:1},custNotif:{delivery:true,invoice:true}};
 try{var th=localStorage.getItem("kfo-theme");if(th)document.documentElement.setAttribute("data-theme",th);}catch(e){}
 
@@ -848,7 +869,22 @@ function panelOverview(){
   var tripFoot=active?'<div class="tcwrap">'+tripCard(active)+'</div>':'<div class="trip-foot">'+ic("truck")+'<span>No active deliveries</span></div>';
   var onroad=orders.filter(function(o){return (o.status==="in_transit"||o.status==="scheduled")&&o.driver;});
   var orRows=onroad.length?onroad.map(function(o){var dd=DRIVERS.find(function(x){return x.id===o.driver;})||{};return '<div class="road-row"><div class="avatar sm">'+initials(dd.name||"?")+'</div><div class="rr-main"><div class="nm">'+esc(dd.name||driverName(o.driver))+'</div><div class="muted sm">'+esc(dd.vehicle||"")+' · '+esc(o.customer)+' · '+PSHORT[o.prod]+' '+fmt(o.litres)+' L</div></div><div class="rr-side">'+stChip(o.status)+'<div class="muted sm mono" style="margin-top:5px">ETA '+esc(o.eta||"—")+'</div></div></div>';}).join(""):'<div class="empty">No drivers on the road right now.</div>';
+  var paidToday=deliveredToday.filter(function(o){return o.paid;}).reduce(function(a,o){return a+value(o);},0);
+  var creditToday=deliveredToday.filter(function(o){return !o.paid;}).reduce(function(a,o){return a+value(o);},0);
+  var profitToday=deliveredToday.reduce(function(a,o){return a+(o.deliveredLitres||o.litres)*((PRICE[o.prod]||0)-(COST[o.prod]||0));},0);
+  var eod='<div class="block"><div class="bh"><h3>'+ic("chart")+'End of day</h3><span class="meta">so far today</span></div><div class="bd">'+
+    '<div class="kv"><span class="k">Litres delivered</span><span class="vv">'+fmt(litresToday)+' L</span></div>'+
+    '<div class="kv"><span class="k">Collected (cash / MMG)</span><span class="vv">'+gyd(paidToday)+'</span></div>'+
+    '<div class="kv"><span class="k">On credit</span><span class="vv">'+gyd(creditToday)+'</span></div>'+
+    '<div class="kv"><span class="k" style="font-weight:700">Est. profit today</span><span class="vv" style="font-weight:700;color:var(--ok)">'+gyd(profitToday)+'</span></div>'+
+  '</div></div>';
+  var due=CUST_TANKS.filter(function(t){return t.days<=4;}).sort(function(a,b){return a.days-b.days;});
+  var dueCard='<div class="block"><div class="bh"><h3>'+ic("drop")+'Due to reorder soon</h3><span class="meta">from tank monitors</span></div><div class="bd">'+
+    (due.length?due.map(function(t){return '<div class="kv"><span class="k">'+esc(t.name)+' <span class="muted sm">'+PSHORT[t.prod]+'</span></span><span class="vv" style="color:'+(t.days<=2?'var(--crit)':'var(--warn)')+'">~'+t.days+' day'+(t.days===1?'':'s')+' left</span></div>';}).join(""):'<div class="empty">All customers topped up.</div>')+
+    '<p class="hint" style="margin:10px 0 0">Call them first — win the order before they run dry.</p></div></div>';
   var att=[];
+  var big=orders.find(function(o){return o.status==="pending"&&o.litres>=10000;});
+  if(big)att.push('<div class="r warn">'+ic("drop")+'<span>Large order — '+fmt(big.litres)+' L from '+esc(big.customer)+'</span><span class="tag">Order</span></div>');
   if(stock.lsd<40)att.push('<div class="r crit">'+ic("alert")+'<span>Low Sulphur Diesel tank at '+stock.lsd+'% — reorder</span><span class="tag">Stock</span></div>');
   if(c.pending)att.push('<div class="r warn">'+ic("truck")+'<span>'+c.pending+' order(s) need a driver assigned</span><span class="tag">Dispatch</span></div>');
   if(c.unpaid)att.push('<div class="r">'+ic("cash")+'<span>'+c.unpaid+' delivered order(s) unpaid — '+gyd(outstanding)+'</span><span class="tag">Billing</span></div>');
@@ -858,6 +894,7 @@ function panelOverview(){
     '<div class="block"><div class="stats">'+stats+'</div></div>'+
     '<div class="block" style="overflow:hidden"><div class="bh"><h3>'+ic("pin")+'Live delivery</h3><span class="st" data-s="in_transit"><span class="d"></span>Corentyne corridor</span></div>'+routeMap()+tripFoot+'</div>'+
     '<div class="block"><div class="bh"><h3>'+ic("truck")+'On the road now</h3><span class="meta">'+onroad.length+' driver'+(onroad.length===1?'':'s')+' delivering</span></div><div class="bd">'+orRows+'</div></div>'+
+    eod+dueCard+
     '<div class="block"><div class="bh"><h3>'+ic("alert")+'Needs attention</h3></div><div class="att">'+(att.join("")||'<div class="empty">Nothing needs attention.</div>')+'</div></div>';
 }
 function routeMap(){
@@ -1055,7 +1092,7 @@ function openTransfer(){
 /* ---------- shared phone shell ---------- */
 function phoneShell(title,sub,body,nav){
   return '<div class="stage"><div class="phone app"><div class="sbar"><span>9:41</span><span class="r">'+ic("signal")+ic("battery")+'</span></div>'+
-    '<div class="ptop"><h3>'+title+'</h3>'+(sub?'<div class="who">'+sub+'</div>':'')+'</div>'+
+    '<div class="ptop"><div class="ptop-l"><h3>'+title+'</h3>'+(sub?'<div class="who">'+sub+'</div>':'')+'</div><div class="ptop-r"><button class="netpill'+(state.online?'':' off')+'" data-act="toggle-net" aria-label="Connection">'+(state.online?'Online':'Offline')+'</button><button class="phelp" data-act="help" aria-label="Help">?</button></div></div>'+
     '<div class="pbody">'+body+'</div>'+nav+'</div></div>';
 }
 
@@ -1070,7 +1107,11 @@ function driverJobs(){
     ? '<div class="callout" style="border-left-color:var(--ok)"><div class="h">'+ic("check")+'Pre-trip check complete</div><p>'+esc(d.vehicle)+' cleared at 07:12 · odometer 84,210 km.</p></div>'
     : '<div class="callout"><div class="h">'+ic("alert")+'Pre-trip vehicle check</div><p>Complete the safety & compliance check before your first delivery.</p><button class="btn sm" data-act="pretrip" style="margin-top:9px">Start check</button></div>';
   var cards=jobs.length?jobs.map(function(o,i){
-    var action=o.status==="in_transit"?'<button class="btn sm" data-act="open-deliver" data-id="'+o.id+'">'+ic("check")+'Confirm delivery</button>':'<button class="btn sm" data-act="start-job" data-id="'+o.id+'">Start trip</button>';
+    var action=o.status==="in_transit"
+      ? (o.arrived
+          ? '<button class="btn sm" data-act="open-deliver" data-id="'+o.id+'">'+ic("check")+'Confirm delivery</button>'
+          : '<button class="btn sm" data-act="arrive-job" data-id="'+o.id+'">'+ic("pin")+'Arrived at site</button>')
+      : '<button class="btn sm" data-act="start-job" data-id="'+o.id+'">Start trip</button>';
     var instr=JOB_INSTR[o.customer];
     return '<div class="job"><div class="jt"><div><div class="stop">STOP '+(i+1)+' · ETA '+esc(o.eta||"—")+'</div><div class="cust">'+esc(o.customer)+'</div><div class="prod">'+PSHORT[o.prod]+' · '+fmt(o.litres)+' L</div></div>'+stChip(o.status)+'</div>'+
       '<div class="addr">'+ic("pin")+'<span>'+esc(o.addr)+'</span></div>'+
@@ -1161,7 +1202,9 @@ function custOrder(){
   var segBtn=function(k){return '<button data-act="cprod" data-prod="'+k+'" aria-pressed="'+(cDraft.prod===k)+'">'+PSHORT[k]+'</button>';};
   var rate=bulkRate(cDraft.litres);var gross=cDraft.litres*PRICE[cDraft.prod];var qVal=Math.round(gross*(1-rate));
   var siteOpts=CUST_SITES.map(function(s,i){return '<option value="'+i+'"'+(i===cDraft.site?' selected':'')+'>'+esc(s.name)+'</option>';}).join("");
-  return custTankCard()+'<div class="block"><div class="bd">'+
+  var last=orders.find(function(o){return o.customer===CUSTOMER_ME&&o.status==="delivered";});
+  var hero=last?'<button class="btn block hero" data-act="reorder" data-id="'+last.id+'">'+ic("repeat")+'Order again — '+PSHORT[last.prod]+' '+fmt(last.litres)+' L</button>':"";
+  return hero+custTankCard()+'<div class="block"><div class="bd">'+
     '<div class="field"><label>Product</label><div class="seg">'+segBtn("ulsd")+segBtn("lsd")+segBtn("gas")+segBtn("kero")+'</div></div>'+
     '<div class="field"><label for="litres">Quantity (litres)</label><input id="litres" type="number" min="500" step="500" value="'+cDraft.litres+'"><span class="hint">Price: '+gyd(PRICE[cDraft.prod])+' / L · bulk discount over 5,000 L</span></div>'+
     '<div class="field"><label for="csite">Deliver to</label><select id="csite">'+siteOpts+'</select></div>'+
@@ -1256,7 +1299,7 @@ function custAccount(){
 }
 function custChat(){
   var chips=["Where is my delivery?","Please call me","Send my invoice","Thank you"];
-  return '<div class="chathead">'+ic("tanker")+'<div><div class="nm">Kris Industries · Dispatch</div><div class="muted sm">Typically replies in a few minutes</div></div></div>'+
+  return '<div class="chathead">'+ic("tanker")+'<div style="flex:1;min-width:0"><div class="nm">Kris Industries · Dispatch</div><div class="muted sm">Typically replies in a few minutes</div></div><button class="wabtn" data-act="contact" data-kind="wa" data-name="Kris Industries">'+ic("chat")+'WhatsApp</button></div>'+
     '<div class="chat">'+custMsgs.map(function(m){return '<div class="msg '+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'<div class="tm">'+esc(m.t)+'</div></div>';}).join("")+'</div>'+
     '<div class="qchips">'+chips.map(function(c){return '<button class="qchip" data-act="cquick" data-text="'+esc(c)+'">'+esc(c)+'</button>';}).join("")+'</div>'+
     '<div class="chatbar"><input id="cmsg" type="text" placeholder="Message Kris Industries…"><button class="sb" data-act="csend" aria-label="Send">'+ic("send")+'</button></div>';
@@ -1498,6 +1541,7 @@ function openReceipt(id){
     '</div></div>'+
     '<div class="flabel" style="text-align:center">Rate this delivery</div>'+starRow(receiptRating)+
     '<button class="btn block" data-act="submit-rating"'+(receiptRating>0?'':' disabled')+'>'+ic("check")+(o.rating?'Update rating':'Submit rating')+'</button>'+
+    '<button class="btn ghost block" data-act="report-issue" data-id="'+o.id+'" style="margin-top:9px">'+ic("alert")+'Report an issue</button>'+
   '</div></div>';
 }
 
@@ -1685,8 +1729,26 @@ function agentReset(){agentStop();agentState.phase="idle";agentState.idx=0;agent
 function setRole(r){if(typeof agentStop==="function")agentStop();state.role=r;closeNotif();document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.role===r);});render();window.scrollTo({top:0,behavior:"smooth"});}
 function render(){if(state.role==="owner")renderOwner();else if(state.role==="driver")renderDriver();else if(state.role==="agent")renderAgent();else renderCustomer();}
 var toastT;
-function toast(msg){var el=document.getElementById("toast");el.innerHTML=ic("check")+'<span>'+msg+'</span>';el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove("show");},2600);}
+function toast(msg){toastAction(msg,null,null);}
+function toastAction(msg,label,fn){var el=document.getElementById("toast");el.innerHTML=ic("check")+'<span>'+msg+'</span>'+(label?'<button class="toast-undo" data-act="toast-act">'+esc(label)+'</button>':'');window._toastFn=fn||null;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove("show");window._toastFn=null;},label?5200:2600);}
 function closeSheet(){document.getElementById("sheet-root").innerHTML="";sheetState=null;}
+/* ---------- foundation helpers (confirm · offline · WhatsApp · help) ---------- */
+var _confirmFn=null;
+function askConfirm(title,detail,label,fn){_confirmFn=fn;document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet confirm"><div class="sh-top"><h3>'+esc(title)+'</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div><p class="cf-detail">'+detail+'</p><div class="cf-btns"><button class="btn ghost" data-act="close-sheet">Cancel</button><button class="btn" data-act="confirm-yes">'+esc(label)+'</button></div></div></div>';}
+function custNotify(o,text){if(o&&o.customer===CUSTOMER_ME){custAlerts.unshift({ic:"file",tone:"go",t:"now",title:text,sub:o.id+" · "+PSHORT[o.prod]+" "+fmt(o.deliveredLitres||o.litres)+" L"});}}
+function openHelp(){document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet"><div class="sh-top"><h3>Help &amp; support</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+  '<p class="muted sm" style="margin:0 0 14px">We’re here if you need anything. Reach Kris Industries directly:</p>'+
+  '<button class="btn block" data-act="contact" data-kind="call" data-name="Kris Industries">'+ic("phone")+'Call Kris Industries · 602-6974</button>'+
+  '<button class="btn block wa" data-act="contact" data-kind="wa" data-name="Kris Industries" style="margin-top:10px">'+ic("chat")+'Chat on WhatsApp</button>'+
+  '<button class="btn ghost block" data-act="close-sheet" style="margin-top:10px">Close</button>'+
+'</div></div>';}
+function placeCustomerOrder(prod,l2,site){var id="KI-"+(seq++);var o={id:id,customer:CUSTOMER_ME,prod:prod,litres:l2,status:"pending",driver:null,addr:site.name+" ("+site.region+")",today:true,paid:false,eta:(cDraft.when==="scheduled"?"Scheduled":null),proof:null,via:"app"};if(cDraft.recurring)o.recurring=true;if(!state.online){o.queued=true;state.queued++;}orders.unshift(o);logEvent(id+" placed by "+CUSTOMER_ME+" ("+PSHORT[prod]+" "+fmt(l2)+" L)"+(cDraft.recurring?" · recurring":"")+(state.online?"":" · queued offline"));state.custTab="orders";renderCustomer();if(!state.online)toastAction("Saved on phone — sends when back online","Undo",function(){undoOrder(id);});else toastAction("Order "+id+" placed · confirmed on WhatsApp","Undo",function(){undoOrder(id);});}
+function undoOrder(id){var i=orders.findIndex(function(x){return x.id===id;});if(i>-1){if(orders[i].queued&&state.queued>0)state.queued--;orders.splice(i,1);logEvent(id+" cancelled (undo)");renderCustomer();toast("Order "+id+" undone");}}
+function openIssue(id){var o=orders.find(function(x){return x.id===id;});if(!o)return;var chips=["Short delivery (litres)","Delivered late","Fuel quality concern","Wrong site","Something else"];document.getElementById("sheet-root").innerHTML='<div class="overlay"><div class="sheet"><div class="sh-top"><h3>Report an issue</h3><button class="x" data-act="close-sheet" aria-label="Close">×</button></div>'+
+  '<div class="sh-sub">'+esc(o.id)+' · '+PSHORT[o.prod]+' '+fmt(o.deliveredLitres||o.litres)+' L · '+esc(o.customer)+'</div>'+
+  '<p class="muted sm" style="margin:0 0 12px">What went wrong? Kris Industries will follow up with you.</p>'+
+  chips.map(function(c){return '<button class="btn ghost block" data-act="submit-issue" data-id="'+esc(o.id)+'" data-k="'+esc(c)+'" style="justify-content:flex-start;margin-bottom:8px">'+c+'</button>';}).join("")+
+'</div></div>';}
 
 document.addEventListener("click",function(e){
   if(e.target.classList&&e.target.classList.contains("overlay")){closeSheet();return;}
@@ -1707,7 +1769,14 @@ document.addEventListener("click",function(e){
   else if(act==="theme"){var cur=document.documentElement.getAttribute("data-theme");var next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark"));document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem("kfo-theme",next);}catch(e2){}if(window.setMapTiles)setMapTiles();}
   else if(act==="dismiss-intro"){var i=document.getElementById("intro");if(i)i.hidden=true;}
   else if(act==="dispatch"){var sel=document.querySelector('[data-assign="'+el.dataset.id+'"]');var o=orders.find(function(x){return x.id===el.dataset.id;});if(o&&sel){o.driver=sel.value;o.status="scheduled";o.eta="Scheduled";logEvent(o.id+" assigned to "+driverName(sel.value));renderOwner();toast("Order "+o.id+" assigned to "+driverName(sel.value));}}
-  else if(act==="start-job"){var o2=orders.find(function(x){return x.id===el.dataset.id;});if(o2){o2.status="in_transit";o2.eta="~18 min";o2.etaMin=18;o2.progress=14;o2.distKm=5.4;logEvent(o2.id+" en route to "+o2.customer);renderDriver();toast("Trip started — customer notified");}}
+  else if(act==="toggle-net"){state.online=!state.online;if(state.online&&state.queued>0){var qn=state.queued;state.queued=0;orders.forEach(function(o){if(o.queued)o.queued=false;});render();toast("Back online — "+qn+" change(s) synced");}else{render();toast(state.online?"Back online":"Offline mode — actions save on your phone & sync later");}}
+  else if(act==="help")openHelp();
+  else if(act==="confirm-yes"){var cf=_confirmFn;_confirmFn=null;closeSheet();if(cf)cf();}
+  else if(act==="toast-act"){var tf=window._toastFn;window._toastFn=null;var te=document.getElementById("toast");if(te)te.classList.remove("show");if(tf)tf();}
+  else if(act==="report-issue")openIssue(el.dataset.id);
+  else if(act==="submit-issue"){closeSheet();logEvent("Issue reported on "+el.dataset.id+" — "+el.dataset.k);toast("Reported — Kris Industries will follow up");}
+  else if(act==="start-job"){var o2=orders.find(function(x){return x.id===el.dataset.id;});if(o2){o2.status="in_transit";o2.eta="~18 min";o2.etaMin=18;o2.progress=14;o2.distKm=5.4;o2.arrived=false;logEvent(o2.id+" en route to "+o2.customer);custNotify(o2,"🚚 "+driverName(DRIVER_ME)+" is on the way — about 18 min");renderDriver();toast("Trip started · customer notified on WhatsApp");}}
+  else if(act==="arrive-job"){var ao=orders.find(function(x){return x.id===el.dataset.id;});if(ao){ao.arrived=true;ao.progress=96;ao.etaMin=1;ao.eta="Now";logEvent(ao.id+" — driver arrived at "+ao.customer);custNotify(ao,"🚚 Your driver has arrived on site");renderDriver();toast("Marked arrived · "+ao.customer+" notified on WhatsApp");}}
   else if(act==="open-deliver")openDeliver(el.dataset.id);
   else if(act==="open-trip")openTrip(el.dataset.id);
   else if(act==="open-new-order")openNewOrder();
@@ -1727,9 +1796,9 @@ document.addEventListener("click",function(e){
   else if(act==="close-sheet")closeSheet();
   else if(act==="clear-sig"){var cv=document.getElementById("sig");if(cv){cv.getContext("2d").clearRect(0,0,cv.width,cv.height);var ph=document.getElementById("sigph");if(ph)ph.style.display="grid";if(sheetState)sheetState.hasSig=false;}}
   else if(act==="add-photo"){if(sheetState)sheetState.photo=true;document.getElementById("photo-slot").innerHTML='<div class="photo-ok">'+ic("check")+'<span>Photo captured</span><span class="muted sm" style="margin-left:auto;font-weight:500">meter_'+(sheetState?sheetState.id:'')+'.jpg</span></div>';}
-  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var rcvEl=document.getElementById("rcv");var dnEl=document.getElementById("dnote");var wtEl=document.getElementById("wtest");var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.slip=SLIP++;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo,receiver:(rcvEl&&rcvEl.value.trim())||"",note:(dnEl&&dnEl.value)||"",waterTest:wtEl?wtEl.checked:false};var tk=TRUCKS.find(function(x){return x.driver===o3.driver;});if(tk&&tk[o3.prod]!=null)tk[o3.prod]=Math.max(0,tk[o3.prod]-(o3.deliveredLitres||0));logEvent(o3.id+" delivered — ticket #"+o3.slip+" ("+fmt(o3.deliveredLitres)+" L)");}closeSheet();renderDriver();toast("Ticket #"+(o3?o3.slip:"")+" generated — proof saved");}
+  else if(act==="complete-delivery"){var dl=document.getElementById("dl");var litres=dl?parseInt(dl.value,10):0;var rcvEl=document.getElementById("rcv");var dnEl=document.getElementById("dnote");var wtEl=document.getElementById("wtest");var o3=orders.find(function(x){return x.id===sheetState.id;});if(o3){o3.status="delivered";o3.deliveredLitres=litres||o3.litres;o3.today=true;o3.slip=SLIP++;o3.proof={time:"Just now",sig:sheetState.hasSig,photo:sheetState.photo,receiver:(rcvEl&&rcvEl.value.trim())||"",note:(dnEl&&dnEl.value)||"",waterTest:wtEl?wtEl.checked:false};var tk=TRUCKS.find(function(x){return x.driver===o3.driver;});if(tk&&tk[o3.prod]!=null)tk[o3.prod]=Math.max(0,tk[o3.prod]-(o3.deliveredLitres||0));if(!state.online){o3.queued=true;state.queued++;}logEvent(o3.id+" delivered — ticket #"+o3.slip+" ("+fmt(o3.deliveredLitres)+" L)"+(state.online?"":" · queued offline"));custNotify(o3,"📄 Delivery complete — signed receipt sent to your WhatsApp");}closeSheet();renderDriver();toast(state.online?("Ticket #"+(o3?o3.slip:"")+" done · receipt sent on WhatsApp"):("Saved on phone — receipt sends when back online"));}
   else if(act==="cprod"){cDraft.prod=el.dataset.prod;renderCustomer();}
-  else if(act==="place-order"){var q=document.getElementById("litres");var l2=q?parseInt(q.value,10):cDraft.litres;if(!l2||l2<500){toast("Enter at least 500 L");return;}cDraft.litres=l2;var sel=document.getElementById("csite");if(sel)cDraft.site=parseInt(sel.value,10)||0;var site=CUST_SITES[cDraft.site]||CUST_SITES[0];var id="KI-"+(seq++);orders.unshift({id:id,customer:CUSTOMER_ME,prod:cDraft.prod,litres:l2,status:"pending",driver:null,addr:site.name+" ("+site.region+")",today:true,paid:false,eta:(cDraft.when==="scheduled"?"Scheduled":null),proof:null,via:"app"});logEvent(id+" placed by "+CUSTOMER_ME+" ("+PSHORT[cDraft.prod]+" "+fmt(l2)+" L)"+(cDraft.recurring?" · recurring":""));state.custTab="orders";renderCustomer();toast("Order "+id+" placed — sent to Kris Industries");}
+  else if(act==="place-order"){var q=document.getElementById("litres");var l2=q?parseInt(q.value,10):cDraft.litres;if(!l2||l2<500){toast("Enter at least 500 L");return;}cDraft.litres=l2;var sel=document.getElementById("csite");if(sel)cDraft.site=parseInt(sel.value,10)||0;var site=CUST_SITES[cDraft.site]||CUST_SITES[0];var prod=cDraft.prod;var rate=bulkRate(l2);var net=Math.round(l2*PRICE[prod]*(1-rate));askConfirm("Confirm your order","<b>"+fmt(l2)+" L "+PSHORT[prod]+"</b> to "+esc(site.name)+"<br>Estimated <b>"+gyd(net)+"</b> · "+(cDraft.when==="scheduled"?"scheduled":"ASAP")+(cDraft.recurring?" · repeats weekly":""),"Place order",function(){placeCustomerOrder(prod,l2,site);});}
   else if(act==="mark-paid"){var o4=orders.find(function(x){return x.id===el.dataset.id;});if(o4){o4.paid=true;logEvent("Payment recorded — "+o4.id+" ("+gyd(value(o4))+")");renderOwner();toast("Invoice "+o4.id+" marked paid");}}
   else if(act==="pay-invoice"){var o5=orders.find(function(x){return x.id===el.dataset.id;});if(o5){o5.paid=true;logEvent("Payment received via MMG — "+o5.id+" ("+gyd(value(o5))+")");renderCustomer();toast("Payment sent — "+o5.id);}}
   else if(act==="auth-login"){var r=el.dataset.role;state.auth[r]=true;state.authMode[r]="login";if(r==="owner")renderOwner();else if(r==="driver")renderDriver();else renderCustomer();toast("Signed in");}
@@ -1755,7 +1824,7 @@ document.addEventListener("click",function(e){
   else if(act==="reorder-now"){var rl=parseInt(el.dataset.l,10)||CUST_TANK.perDay*7;var nid2="KI-"+(seq++);orders.unshift({id:nid2,customer:CUSTOMER_ME,prod:CUST_TANK.prod,litres:rl,status:"pending",driver:null,addr:(CUST_SITES[0]&&CUST_SITES[0].name)||"Rose Hall",today:true,paid:false,eta:null,proof:null});CUST_TANK.level=CUST_TANK.cap;logEvent(nid2+" ordered from tank reminder by "+CUSTOMER_ME);state.custTab="orders";renderCustomer();toast("Order placed — "+nid2);}
   else if(act==="dl-statement"){logEvent(CUSTOMER_ME+" downloaded the November statement");toast("Statement PDF generated");}
   else if(act==="email-statement"){toast("Statement emailed to you");}
-  else if(act==="cancel-order"){var ci=orders.findIndex(function(x){return x.id===el.dataset.id;});if(ci>-1){var co=orders[ci];orders.splice(ci,1);logEvent(co.id+" cancelled");if(state.role==="owner")renderOwner();else renderCustomer();toast("Order "+co.id+" cancelled");}}
+  else if(act==="cancel-order"){var cid0=el.dataset.id;var co0=orders.find(function(x){return x.id===cid0;});if(!co0)return;askConfirm("Cancel this order?","<b>"+esc(co0.id)+"</b> · "+PSHORT[co0.prod]+" "+fmt(co0.litres)+" L · "+esc(co0.customer)+"<br>This can’t be undone.","Cancel order",function(){var ci=orders.findIndex(function(x){return x.id===cid0;});if(ci>-1){orders.splice(ci,1);logEvent(cid0+" cancelled");if(state.role==="owner")renderOwner();else renderCustomer();toast("Order "+cid0+" cancelled");}});}
   else if(act==="navigate"){toast("Opening navigation to "+(el.dataset.name||"destination")+"…");}
   else if(act==="toggle-notif"){var k=el.dataset.k;state.custNotif[k]=!state.custNotif[k];renderCustomer();}
   else if(act==="add-site")openAddSite();
